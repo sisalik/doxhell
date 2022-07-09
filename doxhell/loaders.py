@@ -2,7 +2,7 @@ import dataclasses
 import importlib
 import inspect
 from pathlib import Path
-from typing import Callable, Iterator, List
+from typing import Iterator, List
 
 import yaml
 

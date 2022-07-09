@@ -1,14 +1,32 @@
+import dataclasses
+import enum
 from typing import Iterable
 
+import rich
 import rich.console
 import rich.table
 
 from doxhell.loaders import Requirement
 
 
+@dataclasses.dataclass
+class Problem:
+    description: str
+    severity: "Severity"
+
+    def __str__(self):
+        return self.description
+
+
+class Severity(str, enum.Enum):
+    HIGH = "HIGH"
+    MEDIUM = "MED"
+    LOW = "LOW"
+
+
 def print_coverage_summary(requirements: Iterable[Requirement]) -> None:
-    table = rich.table.Table(title="Coverage summary")
-    table.add_column("Requirement")
+    table = rich.table.Table(title="Coverage summary", title_justify="left")
+    table.add_column("Requirement", justify="right")
     table.add_column("Tests")
     table.add_column("Type")
     for requirement in requirements:
@@ -26,4 +44,29 @@ def print_coverage_summary(requirements: Iterable[Requirement]) -> None:
         table.add_row(colour_str + requirement.id, tests_str, type_str)
 
     console = rich.console.Console()
+    console.print(table)
+
+
+def print_problems(problems: Iterable[Problem]) -> None:
+    if not problems:
+        rich.print("✨ [italic green]Your documentation is perfect![/italic green] ✨")
+        return
+
+    table = rich.table.Table(title="Problems", title_justify="left")
+    table.add_column("Severity", justify="right")
+    table.add_column("Description")
+    # Map problem severity to colour
+    row_styles = {
+        Severity.HIGH: "white on red",
+        Severity.MEDIUM: "red",
+        Severity.LOW: "yellow",
+    }
+    for problem in problems:
+        table.add_row(
+            problem.severity,
+            problem.description,
+            style=row_styles[problem.severity],
+        )
+    console = rich.console.Console()
+    console.print()  # Blank line between tables
     console.print(table)

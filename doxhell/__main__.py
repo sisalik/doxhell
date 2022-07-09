@@ -55,12 +55,14 @@ def main() -> int:
     all_tests = automated_tests + manual_tests
 
     doxhell.reviewers.map_coverage(requirements, all_tests)
-    coverage_problems = doxhell.reviewers.check_coverage(requirements)
-    undefined_problems = doxhell.reviewers.check_undefined_requirements(all_tests)
+    problems = doxhell.reviewers.check_coverage(
+        requirements
+    ) + doxhell.reviewers.check_undefined_requirements(all_tests)
 
     doxhell.outputs.print_coverage_summary(requirements)
+    doxhell.outputs.print_problems(problems)
     # If there are any problems, return a non-zero exit code
-    return len(coverage_problems) + len(undefined_problems)
+    return len(problems)
 
 
 if __name__ == "__main__":
