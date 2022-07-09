@@ -1,0 +1,17 @@
+- requirement: REQ-001
+  specification: The application shall have a GUI
+  rationale: So that the user can operate it
+- requirement: REQ-011
+  specification: >
+    The application shall program the connected board to the
+    latest software version
+  rationale: Older versions are no longer supported
+  parent: REQ-00001-142
+- requirement: REQ-021
+  specification: >
+    The application shall produce audible alerts when user
+    interaction is required
+  rationale: So that users are aware
+  parent: REQ-00598-589
+  obsolete: true
+  obsolete_reason: Users are aware but also annoyed

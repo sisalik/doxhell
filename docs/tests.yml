@@ -1,0 +1,20 @@
+- test: gui
+  description: Test the GUI of the application
+  covers:
+    - REQ-001
+    - REQ-002
+- test: program_board
+  description: Test that the board can be programmed successfully
+  covers:
+    - REQ-011
+    - REQ-012
+    - REQ-013
+  steps:
+    - given: A PCB-0123 board is connected
+      when: The programming task is launched
+      then: Software image version 12.34 is downloaded
+      evidence: log
+    - given: The task finishes successfully
+      when: The board software version is checked using debug interface
+      then: The software version is 12.34
+      evidence: screenshot

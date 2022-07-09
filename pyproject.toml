@@ -1,0 +1,33 @@
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poe.tasks]
+run = "python -m doxhell"
+black = "black doxhell tests"
+isort = "isort doxhell tests"
+toml_sort = "toml-sort -i pyproject.toml"
+auto_format = ["black", "isort", "toml_sort"]
+mypy = "mypy doxhell tests"
+lint = "pylint doxhell tests"
+pre_commit = ["auto_format", "lint", "mypy"]
+
+[tool.poetry]
+name = "doxhell"
+version = "0.1.0"
+description = ""
+authors = ["Siim Lepik <siim.lepik@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+loguru = "^0.6.0"
+PyYAML = "^6.0"
+rich = "^12.4.4"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+black = "^22.6.0"
+pylint = "^2.14.4"
+isort = "^5.10.1"
+mypy = "^0.961"
+types-PyYAML = "^6.0.9"
