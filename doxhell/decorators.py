@@ -2,10 +2,9 @@ from typing import Any, Callable, List, Protocol
 
 
 class TestFunction(Protocol):
-    requirement_ids: List[str]
+    """Type hint for test functions."""
 
-    def __call__(self, *args: Any, **kwds: Any) -> Any:
-        ...
+    requirement_ids: List[str]
 
     def __name__(self) -> str:
         ...

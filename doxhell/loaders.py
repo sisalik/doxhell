@@ -11,12 +11,16 @@ from doxhell.decorators import TestFunction
 
 @dataclasses.dataclass
 class Requirement:
+    """A requirement found in the documentation."""
+
     id: str
     tests: List["Test"] = dataclasses.field(default_factory=list)
 
 
 @dataclasses.dataclass
 class Test:
+    """A test found in the documentation or automated test module."""
+
     id: str
     description: str
     requirement_ids: List[str]
@@ -47,6 +51,7 @@ def load_manual_tests(docs_root_dir: Path | str = ".") -> Iterator[Test]:
 
 
 def load_automated_tests(test_root_dir: Path | str = ".") -> Iterator[Test]:
+    """Load all automated tests from the given path."""
     test_files = _find_test_files(test_root_dir)
     for test_file in test_files:
         for test_function in _find_test_functions(test_file):

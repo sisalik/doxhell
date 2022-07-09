@@ -2,15 +2,98 @@
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.poe.tasks]
-run = "python -m doxhell"
-black = "black doxhell tests"
-isort = "isort doxhell tests"
-toml_sort = "toml-sort -i pyproject.toml"
-auto_format = ["black", "isort", "toml_sort"]
-mypy = "mypy doxhell tests"
-lint = "pylint doxhell tests"
-pre_commit = ["auto_format", "lint", "mypy"]
+[tool.flake8]
+docstring-convention = "google"
+exclude = """
+./.*,
+__pycache__,
+*.pyc,
+*.egg-info,
+"""
+extend-ignore = """
+D100, D104, D105  # Don't make package, module and magic method docstrings compulsory
+
+# Ignore most comma warnings, keeping only "trailing comma on bare tuple prohibited"
+C812, C813, C814, C815, C816, C819
+
+W503,  # Compatiblity with black: line break before binary operator
+"""
+format = "${cyan}%(path)s${reset}:${yellow_bold}%(row)d${reset}:${green_bold}%(col)d${reset}: ${red_bold}%(code)s${reset} %(text)s"
+max-line-length = 88  # Same as black
+strictness = "short"  # Allow one-line docstrings without full details
+
+[tool.isort]
+balanced_wrapping = false
+default_section = "THIRDPARTY"
+force_grid_wrap = 0
+include_trailing_comma = true
+indent = "    "
+line_length = 88
+multi_line_output = 3
+skip_glob = ["**/.**"]
+use_parentheses = true
+
+[tool.poe.env]
+LINT_DIRS = "doxhell tests"
+
+[tool.poe.tasks._autoflake]
+cmd = """
+autoflake --remove-all-unused-imports --remove-unused-variables --recursive --in-place
+$LINT_DIRS
+"""
+help = "Remove unused imports and variables"
+
+[tool.poe.tasks._black]
+cmd = "black $LINT_DIRS"
+help = "Run black to auto-format files"
+
+[tool.poe.tasks._black-check]
+cmd = "black --check --diff --color $LINT_DIRS"
+help = "Run black to check format"
+
+[tool.poe.tasks._isort]
+cmd = "isort $LINT_DIRS"
+help = "Auto-sort imports"
+
+[tool.poe.tasks._isort-check]
+cmd = "isort --check-only --diff $LINT_DIRS"
+help = "Check import sorting"
+
+[tool.poe.tasks._toml-sort]
+cmd = "toml-sort --in-place pyproject.toml"
+help = "Check pyproject.toml sorting"
+
+[tool.poe.tasks._toml-sort-check]
+cmd = "toml-sort --check pyproject.toml"
+help = "Check pyproject.toml sorting"
+
+[tool.poe.tasks.auto-format]
+sequence = ["_autoflake", "_black", "_isort", "_toml-sort"]
+help = "Auto-format code (careful!)"
+
+[tool.poe.tasks.check-format]
+sequence = ["_black-check", "_isort-check", "_toml-sort-check"]
+help = "Check code formatting"
+
+[tool.poe.tasks.lint]
+cmd = "pflake8 $LINT_DIRS"
+help = "Run linter"
+
+[tool.poe.tasks.mypy]
+cmd = "mypy $LINT_DIRS"
+help = "Run type checking using mypy"
+
+[tool.poe.tasks.pre-commit]
+sequence = ["check-format", "lint", "mypy", "test"]
+help = "Run format check, linter, type checker and tests"
+
+[tool.poe.tasks.run]
+cmd = "python -m doxhell"
+help = "Run the tool"
+
+[tool.poe.tasks.test]
+cmd = "pytest"
+help = "Run all tests"
 
 [tool.poetry]
 name = "doxhell"
@@ -25,9 +108,19 @@ PyYAML = "^6.0"
 rich = "^12.4.4"
 
 [tool.poetry.dev-dependencies]
-pytest = "^5.2"
+pytest = "^7.1.2"
 black = "^22.6.0"
-pylint = "^2.14.4"
 isort = "^5.10.1"
 mypy = "^0.961"
 types-PyYAML = "^6.0.9"
+flake8 = "^4.0.1"
+autoflake = "^1.4"
+flake8-bugbear = "^22.7.1"
+flake8-commas = "^2.1.0"
+flake8-comprehensions = "^3.10.0"
+flake8-docstrings = "^1.6.0"
+flake8-printf-formatting = "^1.1.2"
+flake8-pytest-style = "^1.6.0"
+flake8-colors = "^0.1.9"
+pyproject-flake8 = "^0.0.1-alpha.4"
+toml-sort = "^0.20.0"

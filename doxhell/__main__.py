@@ -44,8 +44,8 @@ def _setup_logging(verbosity: int) -> None:
         raise ValueError(f"Invalid verbosity level: {verbosity}")
 
 
-def main() -> int:
-    args = _parse_args()
+def main(args: argparse.Namespace) -> int:
+    """Run the Doxhell review tool."""
     _setup_logging(args.verbose)
     # Load all requirements and tests and convert to lists since we need to iterate
     # over them multiple times
@@ -66,4 +66,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    # Run the main function with command line args and exit with the returned exit code
+    sys.exit(main(_parse_args()))

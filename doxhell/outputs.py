@@ -11,6 +11,8 @@ from doxhell.loaders import Requirement
 
 @dataclasses.dataclass
 class Problem:
+    """A problem found in the documentation."""
+
     description: str
     severity: "Severity"
 
@@ -19,12 +21,15 @@ class Problem:
 
 
 class Severity(str, enum.Enum):
+    """The severity of a problem."""
+
     HIGH = "HIGH"
     MEDIUM = "MED"
     LOW = "LOW"
 
 
 def print_coverage_summary(requirements: Iterable[Requirement]) -> None:
+    """Print a summary of the requirements coverage."""
     table = rich.table.Table(title="Coverage summary", title_justify="left")
     table.add_column("Requirement", justify="right")
     table.add_column("Tests")
@@ -48,6 +53,7 @@ def print_coverage_summary(requirements: Iterable[Requirement]) -> None:
 
 
 def print_problems(problems: Iterable[Problem]) -> None:
+    """Print a colour-coded list of problems."""
     if not problems:
         rich.print("✨ [italic green]Your documentation is perfect![/italic green] ✨")
         return
