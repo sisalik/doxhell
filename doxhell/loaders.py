@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Iterator, List
 
 import yaml
+from loguru import logger
 
 from doxhell.decorators import TestFunction
 
@@ -32,9 +33,11 @@ def load_requirements(docs_root_dir: Path | str = ".") -> Iterator[Requirement]:
     """Load all requirements from the given path."""
     if isinstance(docs_root_dir, str):
         docs_root_dir = Path(docs_root_dir)
+    logger.info("Looking for requirements in {}", docs_root_dir)
 
     for item in docs_root_dir.rglob("*.y*ml"):
         if item.stem == "requirements":
+            logger.debug("Found requirements file: {}", item)
             with open(item) as file:
                 yield from _load_requirements_from_yaml(file)
 
@@ -43,15 +46,18 @@ def load_manual_tests(docs_root_dir: Path | str = ".") -> Iterator[Test]:
     """Load all manual tests from the given path."""
     if isinstance(docs_root_dir, str):
         docs_root_dir = Path(docs_root_dir)
+    logger.info("Looking for manual tests in {}", docs_root_dir)
 
     for item in docs_root_dir.rglob("*.y*ml"):
         if item.stem == "tests":
+            logger.debug("Found tests file: {}", item)
             with open(item) as file:
                 yield from _load_tests_from_yaml(file)
 
 
 def load_automated_tests(test_root_dir: Path | str = ".") -> Iterator[Test]:
     """Load all automated tests from the given path."""
+    logger.info("Looking for tests in {}", test_root_dir)
     test_files = _find_test_files(test_root_dir)
     for test_file in test_files:
         for test_function in _find_test_functions(test_file):
@@ -99,6 +105,7 @@ def _find_test_files(path: str | Path) -> Iterator[Path]:
         # Find test modules the same way as pytest, as per:
         # https://docs.pytest.org/en/latest/explanation/goodpractices.html#conventions-for-python-test-discovery
         if item.stem.startswith("test_") or item.stem.endswith("_test"):
+            logger.debug("Found test file: {}", item)
             yield item
 
 

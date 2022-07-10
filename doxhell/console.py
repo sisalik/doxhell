@@ -1,31 +1,13 @@
-import dataclasses
-import enum
+import sys
 from typing import Iterable
 
+# import pdfkit  # type: ignore  # No type hints stub package exists for this module
 import rich
 import rich.console
 import rich.table
 
 from doxhell.loaders import Requirement
-
-
-@dataclasses.dataclass
-class Problem:
-    """A problem found in the documentation."""
-
-    description: str
-    severity: "Severity"
-
-    def __str__(self):
-        return self.description
-
-
-class Severity(str, enum.Enum):
-    """The severity of a problem."""
-
-    HIGH = "HIGH"
-    MEDIUM = "MED"
-    LOW = "LOW"
+from doxhell.reviewer import Problem, Severity
 
 
 def print_coverage_summary(requirements: Iterable[Requirement]) -> None:
@@ -55,7 +37,6 @@ def print_coverage_summary(requirements: Iterable[Requirement]) -> None:
 def print_problems(problems: Iterable[Problem]) -> None:
     """Print a colour-coded list of problems."""
     if not problems:
-        rich.print("✨ [italic green]Your documentation is perfect![/italic green] ✨")
         return
 
     table = rich.table.Table(title="Problems", title_justify="left")
@@ -74,5 +55,14 @@ def print_problems(problems: Iterable[Problem]) -> None:
             style=row_styles[problem.severity],
         )
     console = rich.console.Console()
-    console.print()  # Blank line between tables
     console.print(table)
+
+
+def print_result_bad(message: str) -> None:
+    """Print an error message to stderr."""
+    rich.print(f"[red]{message}[/red]", file=sys.stderr)
+
+
+def print_result_good(message: str) -> None:
+    """Print a success message to stdout."""
+    rich.print(f"[green]{message}[/green]")
