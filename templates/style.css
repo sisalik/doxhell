@@ -17,6 +17,7 @@ table {
 th,
 td {
     padding: 5px;
+    vertical-align: top;
 }
 
 .page-break {
@@ -29,4 +30,25 @@ td {
 
 .test-description {
     font-style: italic;
+}
+
+input[type=checkbox] {
+    width: 20px;
+    height: 20px;
+    transform: scale(1.5) translateX(2px) !important;
+    -webkit-transform: scale(1.5) translateX(2px) !important;
+}
+
+label {
+    display: block;
+}
+
+.evidence-box {
+    width: 150px;
+    height: 70px;
+}
+
+.comments-box {
+    width: 100%;
+    height: 115px;
 }

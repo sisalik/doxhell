@@ -22,3 +22,7 @@
       when: The board software version is checked using debug interface
       then: The software version is 12.34
       evidence: screenshot
+    - given: The task finishes successfully
+      when: The GUI is checked
+      then: A green tick mark is displayed next to the programming task
+      evidence: observation

@@ -1,16 +1,24 @@
 - requirement: REQ-001
   specification: The application shall have a GUI
   rationale: So that the user can operate it
+- requirement: REQ-002
+  specification: The GUI shall display the current state of the application
+  rationale: So that the user can see the current state of the application
 - requirement: REQ-011
   specification: >
-    The application shall program the connected board to the
-    latest software version
+    The application shall program the connected board to the latest software version
   rationale: Older versions are no longer supported
   parent: REQ-00001-142
+- requirement: REQ-012
+  specification: The application shall preserve board settings while programming
+  rationale: So that settings are not lost
+- requirement: REQ-013
+  specification: >
+    The application shall verify the correct software version after programming
+  rationale: So that the user can be sure that the board is programmed correctly
 - requirement: REQ-021
   specification: >
-    The application shall produce audible alerts when user
-    interaction is required
+    The application shall produce audible alerts when user interaction is required
   rationale: So that users are aware
   parent: REQ-00598-589
   obsolete: true
