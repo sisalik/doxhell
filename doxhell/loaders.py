@@ -2,7 +2,7 @@ import dataclasses
 import importlib
 import inspect
 from pathlib import Path
-from typing import Iterator, List
+from typing import Iterable, Iterator, List
 
 import yaml
 from loguru import logger
@@ -29,7 +29,25 @@ class Test:
     requirements: List[Requirement] = dataclasses.field(default_factory=list)
 
 
-def load_requirements(docs_root_dir: Path | str = ".") -> Iterator[Requirement]:
+def load_requirements(docs_root_dirs: Iterable[Path | str]) -> Iterator[Requirement]:
+    """Load all requirements from the given paths."""
+    # Ignore duplicate directories
+    for docs_root_dir in set(docs_root_dirs):
+        yield from _load_requirements_single(docs_root_dir)
+
+
+def load_tests(
+    docs_root_dirs: Iterable[Path | str], test_root_dirs: Iterable[Path | str]
+) -> Iterator[Test]:
+    """Load all tests from the given paths."""
+    # Ignore duplicate directories
+    for docs_root_dir in set(docs_root_dirs):
+        yield from _load_manual_tests_single(docs_root_dir)
+    for test_root_dir in set(test_root_dirs):
+        yield from _load_automated_tests_single(test_root_dir)
+
+
+def _load_requirements_single(docs_root_dir: Path | str = ".") -> Iterator[Requirement]:
     """Load all requirements from the given path."""
     if isinstance(docs_root_dir, str):
         docs_root_dir = Path(docs_root_dir)
@@ -42,7 +60,7 @@ def load_requirements(docs_root_dir: Path | str = ".") -> Iterator[Requirement]:
                 yield from _load_requirements_from_yaml(file)
 
 
-def load_manual_tests(docs_root_dir: Path | str = ".") -> Iterator[Test]:
+def _load_manual_tests_single(docs_root_dir: Path | str = ".") -> Iterator[Test]:
     """Load all manual tests from the given path."""
     if isinstance(docs_root_dir, str):
         docs_root_dir = Path(docs_root_dir)
@@ -55,7 +73,7 @@ def load_manual_tests(docs_root_dir: Path | str = ".") -> Iterator[Test]:
                 yield from _load_tests_from_yaml(file)
 
 
-def load_automated_tests(test_root_dir: Path | str = ".") -> Iterator[Test]:
+def _load_automated_tests_single(test_root_dir: Path | str = ".") -> Iterator[Test]:
     """Load all automated tests from the given path."""
     logger.info("Looking for tests in {}", test_root_dir)
     test_files = _find_test_files(test_root_dir)

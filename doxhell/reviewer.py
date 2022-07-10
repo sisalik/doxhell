@@ -34,15 +34,13 @@ def review(
     """Validate requirements and tests; check coverage."""
     # Load all requirements and tests and convert to lists since we need to iterate
     # over them multiple times
-    requirements = list(doxhell.loaders.load_requirements(docs_dirs[0]))
+    requirements = list(doxhell.loaders.load_requirements(docs_dirs))
     if not requirements:
         raise ValueError(f"No requirements found in directories {docs_dirs}")
-    manual_tests = list(doxhell.loaders.load_manual_tests(docs_dirs[0]))
-    automated_tests = list(doxhell.loaders.load_automated_tests(test_dirs[0]))
-    all_tests = automated_tests + manual_tests
+    tests = list(doxhell.loaders.load_tests(docs_dirs, test_dirs))
 
-    _map_coverage(requirements, all_tests)
-    problems = _check_coverage(requirements) + _check_undefined_requirements(all_tests)
+    _map_coverage(requirements, tests)
+    problems = _check_coverage(requirements) + _check_undefined_requirements(tests)
     return requirements, problems
 
 
