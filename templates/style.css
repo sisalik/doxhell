@@ -2,22 +2,59 @@ body {
     font-family: sans-serif;
 }
 
-table,
-th,
-td {
-    border: 1px solid black;
+#front-page {
+    padding-top: 500px;
+    text-align: center;
+    page-break-after: always;
+}
+
+#front-page h1 {
+    font-size: 40px;
+}
+
+#front-page h3 {
+    font-size: 20px;
+}
+
+table.test-conditions {
+    width: 50%;
+}
+
+table.test-conditions td:first-of-type {
+    width: 30%;
+    text-align: right;
+    vertical-align: middle;
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 20px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
 }
 
-th,
-td {
-    padding: 5px;
+table thead tr {
+    background-color: #bbb;
+    color: white;
+    text-align: left;
+}
+
+table th,
+table td {
+    padding: 12px 15px;
     vertical-align: top;
+}
+
+table tbody tr {
+    border-bottom: 1px solid #dddddd;
+}
+
+table tbody tr:nth-of-type(even) {
+    background-color: #f3f3f3;
+}
+
+table tbody tr:last-of-type {
+    border-bottom: 2px solid darkgrey;
 }
 
 .page-break {
@@ -41,6 +78,11 @@ input[type=checkbox] {
 
 label {
     display: block;
+}
+
+.conditions-box {
+    width: 100%;
+    height: 30px;
 }
 
 .evidence-box {

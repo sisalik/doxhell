@@ -1,3 +1,4 @@
+import datetime
 import enum
 from typing import Dict, Iterable
 
@@ -30,8 +31,20 @@ def render_protocol(
 def _render_html(tests: Iterable[Test]) -> str:
     env = jinja2.Environment(loader=jinja2.FileSystemLoader("templates"))
     template = env.get_template("test-protocol.jinja")
-    return template.render(tests=tests)
+    return template.render(
+        tests=tests, title="Test Protocol", render_date=datetime.datetime.now()
+    )
 
 
 def _render_pdf(html_content: str, pdf_path: str) -> None:
-    pdfkit.from_string(html_content, pdf_path, options={"enable-forms": True})
+    pdfkit.from_string(
+        html_content,
+        pdf_path,
+        options={
+            "enable-forms": True,
+            "footer-font-size": 8,
+            "footer-left": "[isodate]",
+            "footer-center": "[doctitle]",
+            "footer-right": "Page [page] of [topage]",
+        },
+    )

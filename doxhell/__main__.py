@@ -29,7 +29,7 @@ class StandardCommand(click.Command):
                     "times, e.g. -vv.",
                 ),
                 click.Option(
-                    ("-t", "--test-dir", "test_dirs"),
+                    ("--test-dir", "test_dirs"),
                     default=(".",),
                     type=click.Path(exists=True, file_okay=False, dir_okay=True),
                     multiple=True,
@@ -37,7 +37,7 @@ class StandardCommand(click.Command):
                     "multiple times to analyse more than one directory.",
                 ),
                 click.Option(
-                    ("-d", "--docs-dir", "docs_dirs"),
+                    ("--docs-dir", "docs_dirs"),
                     default=(".",),
                     type=click.Path(exists=True, file_okay=False, dir_okay=True),
                     multiple=True,
@@ -50,7 +50,7 @@ class StandardCommand(click.Command):
 
 @click.group()
 def cli():
-    """Command line interface entry point."""
+    """Automate software V&V documentation work."""
 
 
 @cli.command(cls=StandardCommand)

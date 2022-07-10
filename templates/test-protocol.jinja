@@ -1,56 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <title>Test Protocol</title>
-    <style>
-        {% include 'style.css' %}
-    </style>
-</head>
-
-<body>
-    {% for test in tests if not test.automated %}
-    <div class="test-section">
-        <h1 class="test-id">{{ test.id }}</h1>
-        <p class="test-description">{{ test.description }}</p>
-        <table>
-            <tr>
-                <th>Step</th>
-                <th>Given</th>
-                <th>When</th>
-                <th>Then</th>
-                <th>Pass</th>
-                <th>Evidence</th>
-            </tr>
-            {% for step in test.steps %}
-            <tr>
-                <td>{{ loop.index }}</td>
-                <td>{{ step.given }}</td>
-                <td>{{ step.when }}</td>
-                <td>{{ step.then }}</td>
-                <td><input type="checkbox" name="pass-{{ test.id }}-{{ loop.index }}" /></td>
-                <td>
-                    {% if step.evidence %}
-                        {% if step.evidence.value == "observation" %}
-                        <span>Observation</span>
-                        {% else %}
-                        <label>{{ step.evidence.value | title }} file:</label>
-                        <textarea class="evidence-box" name="evidence-{{ test.id }}-{{ loop.index }}"></textarea>
-                        {% endif %}
-                    {% else %}
-                    <span>N/A</span>
-                    {% endif %}
-                </td>
-            </tr>
+    <head>
+        <title>{{ title }}</title>
+        <style>{% include 'style.css' %}</style>
+    </head>
+    <body>
+        <div id="front-page">
+            <h1>{{ title }}</h1>
+            <h3>Published {{ render_date.strftime('%Y-%m-%d') }}</h3>
+        </div>
+        <div id="test-pages">
+            {% for test in tests if not test.automated %}
+                <h1 class="test-id">{{ test.id }}</h1>
+                <p class="test-description">{{ test.description }}</p>
+                <h3>Test conditions</h3>
+                <table class="test-conditions">
+                    <tr>
+                        <td>Tester name</td>
+                        <td>
+                            <textarea class="conditions-box" name="name-{{ test.id }}"></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Date</td>
+                        <td>
+                            <textarea class="conditions-box" name="date-{{ test.id }}"></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Software version</td>
+                        <td>
+                            <textarea class="conditions-box" name="version-{{ test.id }}"></textarea>
+                        </td>
+                    </tr>
+                </table>
+                <h3>Test procedure</h3>
+                <table class="test-procedure">
+                    <thead>
+                        <tr>
+                            <th>Step</th>
+                            <th>Given</th>
+                            <th>When</th>
+                            <th>Then</th>
+                            <th>Pass</th>
+                            <th>Evidence</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for step in test.steps %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ step.given }}</td>
+                                <td>{{ step.when }}</td>
+                                <td>{{ step.then }}</td>
+                                <td>
+                                    <input type="checkbox" name="pass-{{ test.id }}-{{ loop.index }}" />
+                                </td>
+                                <td>
+                                    {% if step.evidence %}
+                                        {% if step.evidence.value == "observation" %}
+                                            <span>Observation</span>
+                                        {% else %}
+                                            <label>{{ step.evidence.value | title }} file:</label>
+                                            <textarea class="evidence-box" name="evidence-{{ test.id }}-{{ loop.index }}"></textarea>
+                                        {% endif %}
+                                    {% else %}
+                                        <span>N/A</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <label>Comments:</label>
+                <textarea class="comments-box" name="comments-{{ test.id }}"></textarea>
+                {% if not loop.last %}<div class="page-break"></div>{% endif %}
             {% endfor %}
-        </table>
-        <label>Comments:</label>
-        <textarea class="comments-box" name="comments-{{ test.id }}"></textarea>
-        {% if not loop.last %}
-        <div class="page-break"></div>
-        {% endif %}
-    </div>
-    {% endfor %}
-</body>
-
+        </div>
+    </body>
 </html>
