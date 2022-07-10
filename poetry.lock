@@ -56,7 +56,7 @@ uvloop = ["uvloop (>=0.15.2)"]
 name = "click"
 version = "8.1.3"
 description = "Composable command line interface toolkit"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 
@@ -476,7 +476,7 @@ dev = ["pytest (>=4.6.2)", "black (>=19.3b0)"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "688fa6a5d5d2ff82e94c4a43735a4cbd41c849e0e552a229b6f6bc7b175dbe4d"
+content-hash = "2febf7c75a92d76dc9f00b216549c44d75642529897790571de5b1234ddd27ca"
 
 [metadata.files]
 atomicwrites = []
