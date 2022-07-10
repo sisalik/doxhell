@@ -1,12 +1,12 @@
-from doxhell.decorators import satisfies
+from doxhell.decorators import verifies
 
 
-@satisfies("REQ-001")
+@verifies("REQ-001")
 def test_1():
     """Test 1."""
 
 
-@satisfies("REQ-002", "REQ-003")
+@verifies("REQ-011", "REQ-021")
 def test_2():
     """Test 2."""
 

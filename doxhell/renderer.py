@@ -1,5 +1,5 @@
-from pathlib import Path
-from typing import Iterable
+import enum
+from typing import Dict, Iterable
 
 import jinja2
 import pdfkit  # type: ignore  # Skip type checking this module - no library stubs
@@ -7,26 +7,31 @@ import pdfkit  # type: ignore  # Skip type checking this module - no library stu
 from doxhell.loaders import Test
 
 
-def render_protocol(tests: Iterable[Test]) -> str:
-    """Render the manual test protocol."""
-    html_file = _render_html(tests)
-    return _render_pdf(html_file)
+class OutputFormat(str, enum.Enum):
+    """The format of the rendered output file."""
+
+    HTML = "html"
+    PDF = "pdf"
+
+
+def render_protocol(
+    tests: Iterable[Test],
+    output_map: Dict[OutputFormat, str],
+) -> None:
+    """Render the manual test protocol in specified formats, to specified files."""
+    html_content = _render_html(tests)
+    if OutputFormat.HTML in output_map:
+        with open(output_map[OutputFormat.HTML], "w") as file:
+            file.write(html_content)
+    if OutputFormat.PDF in output_map:
+        _render_pdf(html_content, output_map[OutputFormat.PDF])
 
 
 def _render_html(tests: Iterable[Test]) -> str:
     env = jinja2.Environment(loader=jinja2.FileSystemLoader("templates"))
     template = env.get_template("test-protocol.jinja")
-    with open(Path("templates") / "style.css", "r") as css_file:
-        stylesheet = css_file.read()
-    output = template.render(tests=tests, stylesheet=stylesheet)
-    html_filename = "test-protocol.html"
-    with open(html_filename, "w") as file:
-        file.write(output)
-
-    return html_filename
+    return template.render(tests=tests)
 
 
-def _render_pdf(html_file: str) -> str:
-    pdf_filename = "test-protocol.pdf"
-    pdfkit.from_file(html_file, pdf_filename, options={"enable-forms": True})
-    return pdf_filename
+def _render_pdf(html_content: str, pdf_path: str) -> None:
+    pdfkit.from_string(html_content, pdf_path, options={"enable-forms": True})

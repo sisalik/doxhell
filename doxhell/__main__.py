@@ -1,5 +1,6 @@
 import sys
-from typing import Tuple
+from pathlib import Path
+from typing import Dict, Tuple
 
 import click
 from loguru import logger
@@ -8,6 +9,7 @@ import doxhell.console
 import doxhell.loaders
 import doxhell.renderer
 import doxhell.reviewer
+from doxhell.renderer import OutputFormat
 
 
 class StandardCommand(click.Command):
@@ -59,7 +61,6 @@ def review(
     _setup_logging(verbosity)
     requirements, _, problems = doxhell.reviewer.review(test_dirs, docs_dirs)
     doxhell.console.print_coverage_summary(requirements)
-    print()
     doxhell.console.print_problems(problems)
     if problems:
         doxhell.console.print_result_bad("Review failed 😢")
@@ -70,12 +71,46 @@ def review(
 
 @cli.command(cls=StandardCommand)
 @click.argument("target", type=click.Choice(["requirements", "coverage", "protocol"]))
+@click.option(
+    "-t",
+    "--format",
+    "formats",
+    default=(OutputFormat.PDF,),
+    type=click.Choice(list(OutputFormat)),
+    multiple=True,
+    help="The format to render the output in. Defaults to PDF. Can be passed multiple "
+    "times to render in multiple formats.",
+)
+@click.option(
+    "-o",
+    "--output",
+    "output_files",
+    type=click.Path(),
+    multiple=True,
+    help="The output file path. Defaults to <target>.<format> (e.g. 'protocol.pdf'). "
+    "Can also be passed multiple times, matching each --format option.",
+)
+@click.option(
+    "-f",
+    "--force",
+    "force_overwrite",
+    is_flag=True,
+    help="Force overwriting of output files.",
+)
 def render(
-    target: str, verbosity: int, test_dirs: Tuple[str, ...], docs_dirs: Tuple[str, ...]
+    target: str,
+    formats: Tuple[OutputFormat, ...],
+    output_files: Tuple[str, ...],
+    force_overwrite: bool,
+    verbosity: int,
+    test_dirs: Tuple[str, ...],
+    docs_dirs: Tuple[str, ...],
 ) -> None:
     """Produce PDF output documents from source files."""
     if target in ("requirements", "coverage"):
         raise NotImplementedError(f"Rendering {target} is not yet implemented")
+    output_map = _map_output_formats(target, formats, output_files, force_overwrite)
+
     _setup_logging(verbosity)
     _, tests, problems = doxhell.reviewer.review(test_dirs, docs_dirs)
     if problems:
@@ -84,8 +119,8 @@ def render(
         sys.exit(1)
 
     if target == "protocol":
-        pdf_filename = doxhell.renderer.render_protocol(tests)
-        doxhell.console.print_result_good(f"Wrote {pdf_filename}")
+        doxhell.renderer.render_protocol(tests, output_map)
+        doxhell.console.print_result_good(f"Wrote {', '.join(output_map.values())}")
 
 
 def _setup_logging(verbosity: int) -> None:
@@ -98,6 +133,33 @@ def _setup_logging(verbosity: int) -> None:
         logger.add(sys.stderr, level="DEBUG")
     else:
         raise ValueError(f"Invalid verbosity level: {verbosity}")
+
+
+def _map_output_formats(
+    target: str,
+    formats: Tuple[OutputFormat, ...],
+    output_files: Tuple[str, ...],
+    force_overwrite: bool,
+) -> Dict[OutputFormat, str]:
+    """Validate and map output formats to output files."""
+    # If no output files are specified, use the default output file paths.
+    if not output_files:
+        output_files = tuple(f"{target}.{format}" for format in formats)
+    # Check for mismatched number of formats and output files.
+    elif len(formats) != len(output_files):
+        raise ValueError(
+            f"Mismatched number of formats and output files: {len(formats)} formats "
+            f"and {len(output_files)} output files"
+        )
+    # Check if any output files already exist.
+    if not force_overwrite:
+        for output_file in output_files:
+            path = Path(output_file)
+            if path.exists() and path.is_file():
+                click.confirm(
+                    f"File {output_file} already exists. Overwrite?", abort=True
+                )
+    return {format: output_file for format, output_file in zip(formats, output_files)}
 
 
 if __name__ == "__main__":

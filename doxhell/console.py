@@ -1,9 +1,7 @@
 import sys
 from typing import Iterable
 
-# import pdfkit  # type: ignore  # No type hints stub package exists for this module
 import rich
-import rich.console
 import rich.table
 
 from doxhell.loaders import Requirement
@@ -30,8 +28,8 @@ def print_coverage_summary(requirements: Iterable[Requirement]) -> None:
             type_str = "[red]-"
         table.add_row(colour_str + requirement.id, tests_str, type_str)
 
-    console = rich.console.Console()
-    console.print(table)
+    print()
+    rich.print(table)
 
 
 def print_problems(problems: Iterable[Problem]) -> None:
@@ -54,15 +52,15 @@ def print_problems(problems: Iterable[Problem]) -> None:
             problem.description,
             style=row_styles[problem.severity],
         )
-    console = rich.console.Console()
-    console.print(table)
+    print()
+    rich.print(table)
 
 
 def print_result_bad(message: str) -> None:
     """Print an error message to stderr."""
-    rich.print(f"[red]{message}[/red]", file=sys.stderr)
+    rich.print(f"\n[red]{message}[/red]", file=sys.stderr)
 
 
 def print_result_good(message: str) -> None:
     """Print a success message to stdout."""
-    rich.print(f"[green]{message}[/green]")
+    rich.print(f"\n[green]{message}[/green]")
