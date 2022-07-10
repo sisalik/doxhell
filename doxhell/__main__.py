@@ -2,11 +2,11 @@ import sys
 from typing import Tuple
 
 import click
-import rich.console
 from loguru import logger
 
 import doxhell.console
 import doxhell.loaders
+import doxhell.renderer
 import doxhell.reviewer
 
 
@@ -57,7 +57,7 @@ def review(
 ) -> None:
     """Validate requirements and tests; check coverage."""
     _setup_logging(verbosity)
-    requirements, problems = doxhell.reviewer.review(test_dirs, docs_dirs)
+    requirements, _, problems = doxhell.reviewer.review(test_dirs, docs_dirs)
     doxhell.console.print_coverage_summary(requirements)
     print()
     doxhell.console.print_problems(problems)
@@ -74,14 +74,18 @@ def render(
     target: str, verbosity: int, test_dirs: Tuple[str, ...], docs_dirs: Tuple[str, ...]
 ) -> None:
     """Produce PDF output documents from source files."""
-    if target in ("requirements", "coverage", "protocol"):
+    if target in ("requirements", "coverage"):
         raise NotImplementedError(f"Rendering {target} is not yet implemented")
     _setup_logging(verbosity)
-    _, problems = doxhell.reviewer.review(test_dirs, docs_dirs)
+    _, tests, problems = doxhell.reviewer.review(test_dirs, docs_dirs)
     if problems:
         doxhell.console.print_problems(problems)
         doxhell.console.print_result_bad("Documentation is invalid; can't continue 😢")
         sys.exit(1)
+
+    if target == "protocol":
+        pdf_filename = doxhell.renderer.render_protocol(tests)
+        doxhell.console.print_result_good(f"Wrote {pdf_filename}")
 
 
 def _setup_logging(verbosity: int) -> None:
@@ -97,8 +101,5 @@ def _setup_logging(verbosity: int) -> None:
 
 
 if __name__ == "__main__":
-    try:
+    with logger.catch():
         cli()
-    except Exception:
-        # Show nice traceback if case of any error
-        rich.console.Console().print_exception()

@@ -1,8 +1,9 @@
 import dataclasses
+import enum
 import importlib
 import inspect
 from pathlib import Path
-from typing import Iterable, Iterator, List
+from typing import Iterable, Iterator, List, Optional
 
 import yaml
 from loguru import logger
@@ -27,6 +28,26 @@ class Test:
     requirement_ids: List[str]
     automated: bool
     requirements: List[Requirement] = dataclasses.field(default_factory=list)
+    steps: List["TestStep"] = dataclasses.field(default_factory=list)
+
+
+class EvidenceType(str, enum.Enum):
+    """The type of evidence used to prove that a manual test passed."""
+
+    SCREENSHOT = "screenshot"
+    LOG = "log"
+    OBSERVATION = "observation"
+    SETTINGS = "settings"
+
+
+@dataclasses.dataclass
+class TestStep:
+    """A step in a test."""
+
+    given: str
+    when: str
+    then: str
+    evidence: Optional[EvidenceType] = None
 
 
 def load_requirements(docs_root_dirs: Iterable[Path | str]) -> Iterator[Requirement]:
@@ -102,7 +123,17 @@ def _load_tests_from_yaml(file) -> Iterator[Test]:
     # TODO: Use pydantic (?) to validate the YAML file
     for member in yaml.safe_load(file):
         full_test_name = f"{file.name}::{member['test']}"
-        yield Test(full_test_name, member["description"], member["covers"], False)
+        test = Test(full_test_name, member["description"], member["covers"], False)
+        for step in member["steps"]:
+            test_step = TestStep(
+                step["given"],
+                step["when"],
+                step["then"],
+                EvidenceType(step["evidence"]) if "evidence" in step else None,
+            )
+            test.steps.append(test_step)
+        logger.debug(test)
+        yield test
 
 
 def _find_test_files(path: str | Path) -> Iterator[Path]:

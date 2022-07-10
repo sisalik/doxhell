@@ -1,0 +1,32 @@
+body {
+    font-family: sans-serif;
+}
+
+table,
+th,
+td {
+    border: 1px solid black;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+th,
+td {
+    padding: 5px;
+}
+
+.page-break {
+    page-break-after: always;
+}
+
+.test-id {
+    font-family: monospace;
+}
+
+.test-description {
+    font-style: italic;
+}

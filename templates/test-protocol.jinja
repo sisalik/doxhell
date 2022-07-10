@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Test Protocol</title>
+    <style>
+        {{ stylesheet }}
+    </style>
+</head>
+
+<body>
+    {% for test in tests if not test.automated %}
+    <div class="test-section" id="test-section-{{ test.id }}">
+        <h1 class="test-id">{{ test.id }}</h1>
+        <p class="test-description">{{ test.description }}</p>
+        <p>Covers:</p>
+        <ul>
+            {% for requirement in test.requirement_ids %}
+            <li>{{ requirement }}</li>
+            {% endfor %}
+        </ul>
+        <table>
+            <tr>
+                <th>Given</th>
+                <th>When</th>
+                <th>Then</th>
+                <th>Pass</th>
+                <th>Evidence</th>
+            </tr>
+            {% for step in test.steps %}
+            <tr>
+                <td>{{ step.given }}</td>
+                <td>{{ step.when }}</td>
+                <td>{{ step.then }}</td>
+                <td><input type="checkbox" name="pass-{{ test.id }}-{{ loop.index }}" /></td>
+                <td>
+                    {% if step.evidence %}
+                    <textarea name="evidence-{{ test.id }}-{{ loop.index }}"></textarea>
+                    {% else %}
+                    <span>N/A</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+        <label for="comments-{{ test.id }}">Comments</label>
+        <textarea name="comments-{{ test.id }}" cols="100" rows="1"></textarea>
+        {% if not loop.last %}
+        <div class="page-break"></div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</body>
+
+</html>

@@ -3,6 +3,10 @@
   covers:
     - REQ-001
     - REQ-002
+  steps:
+    - given: User is logged on to the test PC
+      when: The application is launched
+      then: A GUI is displayed
 - test: program_board
   description: Test that the board can be programmed successfully
   covers:

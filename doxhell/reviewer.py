@@ -30,7 +30,7 @@ class Severity(str, enum.Enum):
 
 def review(
     test_dirs: Tuple[str, ...], docs_dirs: Tuple[str, ...]
-) -> Tuple[List[Requirement], List[Problem]]:
+) -> Tuple[List[Requirement], List[Test], List[Problem]]:
     """Validate requirements and tests; check coverage."""
     # Load all requirements and tests and convert to lists since we need to iterate
     # over them multiple times
@@ -41,7 +41,7 @@ def review(
 
     _map_coverage(requirements, tests)
     problems = _check_coverage(requirements) + _check_undefined_requirements(tests)
-    return requirements, problems
+    return requirements, tests, problems
 
 
 def _map_coverage(requirements: Iterable[Requirement], tests: Iterable[Test]) -> None:
