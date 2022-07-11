@@ -1,15 +1,10 @@
-from doxhell.decorators import verifies
+import click.testing
+
+import doxhell.__main__
 
 
-@verifies("REQ-001")
-def test_1():
-    """Test 1."""
-
-
-@verifies("REQ-011", "REQ-021")
-def test_2():
-    """Test 2."""
-
-
-def test_3():
-    """Test 3."""
+def test_smoke():
+    """Test if the tool can run at all."""
+    runner = click.testing.CliRunner()
+    result = runner.invoke(doxhell.__main__.cli)
+    assert result.exit_code == 0
