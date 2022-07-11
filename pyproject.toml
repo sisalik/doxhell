@@ -2,6 +2,10 @@
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.djlint]
+ignore = "H030,H031"
+profile = "jinja"
+
 [tool.flake8]
 docstring-convention = "google"
 exclude = """
@@ -59,6 +63,14 @@ help = "Auto-format CSS files"
 cmd = "python scripts/format_css.py --check templates"
 help = "Check format of CSS files"
 
+[tool.poe.tasks._format-templates]
+cmd = "djlint templates --reformat --extension .jinja2"
+help = "Auto-format Jinja2 templates"
+
+[tool.poe.tasks._format-templates-check]
+cmd = "djlint templates --check --extension .jinja2"
+help = "Check format of Jinja2 templates"
+
 [tool.poe.tasks._isort]
 cmd = "isort $LINT_DIRS"
 help = "Auto-sort imports"
@@ -76,16 +88,24 @@ cmd = "toml-sort --check pyproject.toml"
 help = "Check pyproject.toml sorting"
 
 [tool.poe.tasks.auto-format]
-sequence = ["_autoflake", "_black", "_isort", "_toml-sort", "_format-css"]
+sequence = ["_autoflake", "_black", "_isort", "_toml-sort", "_format-css", "_format-templates"]
 help = "Auto-format code (careful!)"
 
 [tool.poe.tasks.check-format]
-sequence = ["_black-check", "_isort-check", "_toml-sort-check", "_format-css-check"]
+sequence = ["_black-check", "_isort-check", "_toml-sort-check", "_format-css-check", "_format-templates-check"]
 help = "Check code formatting"
 
 [tool.poe.tasks.lint]
+sequence = ["lint-python", "lint-templates"]
+help = "Lint all code"
+
+[tool.poe.tasks.lint-python]
 cmd = "pflake8 $LINT_DIRS"
-help = "Run linter"
+help = "Lint Python code"
+
+[tool.poe.tasks.lint-templates]
+cmd = "djlint templates --lint --extension .jinja2"
+help = "Lint Jinja2 templates"
 
 [tool.poe.tasks.mypy]
 cmd = "mypy $LINT_DIRS"
@@ -136,6 +156,7 @@ flake8-colors = "^0.1.9"
 pyproject-flake8 = "^0.0.1-alpha.4"
 toml-sort = "^0.20.0"
 cssbeautifier = "^1.14.4"
+djlint = "^1.7.0"
 
 [tool.poetry.scripts]
 doxhell = "doxhell.__main__:cli"
