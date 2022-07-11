@@ -34,7 +34,7 @@ skip_glob = ["**/.**"]
 use_parentheses = true
 
 [tool.poe.env]
-LINT_DIRS = "doxhell tests"
+LINT_DIRS = "doxhell scripts tests"
 
 [tool.poe.tasks._autoflake]
 cmd = """
@@ -50,6 +50,14 @@ help = "Run black to auto-format files"
 [tool.poe.tasks._black-check]
 cmd = "black --check --diff --color $LINT_DIRS"
 help = "Run black to check format"
+
+[tool.poe.tasks._format-css]
+cmd = "python scripts/format_css.py templates"
+help = "Auto-format CSS files"
+
+[tool.poe.tasks._format-css-check]
+cmd = "python scripts/format_css.py --check templates"
+help = "Check format of CSS files"
 
 [tool.poe.tasks._isort]
 cmd = "isort $LINT_DIRS"
@@ -68,11 +76,11 @@ cmd = "toml-sort --check pyproject.toml"
 help = "Check pyproject.toml sorting"
 
 [tool.poe.tasks.auto-format]
-sequence = ["_autoflake", "_black", "_isort", "_toml-sort"]
+sequence = ["_autoflake", "_black", "_isort", "_toml-sort", "_format-css"]
 help = "Auto-format code (careful!)"
 
 [tool.poe.tasks.check-format]
-sequence = ["_black-check", "_isort-check", "_toml-sort-check"]
+sequence = ["_black-check", "_isort-check", "_toml-sort-check", "_format-css-check"]
 help = "Check code formatting"
 
 [tool.poe.tasks.lint]
@@ -127,3 +135,7 @@ flake8-pytest-style = "^1.6.0"
 flake8-colors = "^0.1.9"
 pyproject-flake8 = "^0.0.1-alpha.4"
 toml-sort = "^0.20.0"
+cssbeautifier = "^1.14.4"
+
+[tool.poetry.scripts]
+doxhell = "doxhell.__main__:cli"
