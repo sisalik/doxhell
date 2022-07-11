@@ -1,19 +1,10 @@
-from typing import Any, Callable, List, Protocol
+from typing import Any, Callable
 
 
-class TestFunction(Protocol):
-    """Type hint for test functions."""
-
-    requirement_ids: List[str]
-
-    def __name__(self) -> str:
-        ...
-
-
-def verifies(*requirement_ids: str) -> Callable[[Any], TestFunction]:
+def verifies(*requirement_ids: str) -> Callable[[Any], Callable]:
     """Decorator to mark test functions as verifying a requirement."""
 
-    def satisfies_decorator(test_function: Any) -> TestFunction:
+    def satisfies_decorator(test_function: Any) -> Callable:
         test_function.requirement_ids = list(requirement_ids)
         return test_function
 

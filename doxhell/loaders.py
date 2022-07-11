@@ -2,13 +2,13 @@ import dataclasses
 import enum
 import importlib
 import inspect
+import unittest.mock
 from pathlib import Path
+from types import FunctionType, ModuleType
 from typing import Iterable, Iterator, List, Optional
 
 import yaml
 from loguru import logger
-
-from doxhell.decorators import TestFunction
 
 
 @dataclasses.dataclass
@@ -105,7 +105,9 @@ def _load_automated_tests_single(test_root_dir: Path | str = ".") -> Iterator[Te
                 test = Test(
                     full_test_name,
                     str(test_function.__doc__),
-                    test_function.requirement_ids,
+                    # mypy doesn't think this function has a "requirement_ids" attribute
+                    # but we clearly guard against that above
+                    test_function.requirement_ids,  # type: ignore
                     True,
                 )
                 yield test
@@ -158,11 +160,48 @@ def _find_test_files(path: str | Path) -> Iterator[Path]:
             yield item
 
 
-def _find_test_functions(file_path: Path) -> Iterator[TestFunction]:
+def _find_test_functions(file_path: Path) -> Iterator[FunctionType]:
     """Find all test functions in the given module."""
-    # Convert the path to a module name by removing the file extension
-    parts = file_path.parts[:-1] + (file_path.stem,)
-    module = importlib.import_module(".".join(parts))
+    module = _import_module(file_path)
+    # TODO: Support unittest style test classes
     for name, obj in inspect.getmembers(module):
-        if name.startswith("test"):
+        if name.startswith("test") and inspect.isfunction(obj):
             yield obj
+
+
+def _import_module(file_path: Path) -> ModuleType:
+    """Import the given module, without having the module dependencies installed.
+
+    We need to be able to import test modules without having the project dependencies
+    installed. This is because doxhell may be installed in an environment outside of the
+    project.
+
+    Normally, imports of any modules, that aren't available in the doxhell environment,
+    would fail. We patch the import machinery to selectively return a mock object for
+    these. We make an exception for importing doxhell itself, since we still need the
+    decorators to be available.
+    """
+    # Convert the path to a Python module name by removing the file extension and using
+    # dots as separators (e.g. "tests/test_doxhell.py" -> "tests.test_doxhell")
+    parts = file_path.parts[:-1] + (file_path.stem,)
+    module_name = ".".join(parts)
+    # Set up importing the source file directly. Based on:
+    # https://docs.python.org/3/library/importlib.html#importing-a-source-file-directly
+    spec = importlib.util.spec_from_file_location(module_name, str(file_path))
+    assert spec, f"Failed to create module spec for {file_path}"
+    assert spec.loader, f"Spec for {file_path} has no loader"
+    module = importlib.util.module_from_spec(spec)
+
+    # Define a mock function for selectively importing modules. It allows any doxhell
+    # related modules to be imported as normal, but returns a mock object for all other
+    # modules.
+    def selective_import(name, *args, **kwargs):
+        if name.split(".")[0] == "doxhell":
+            return builtin_import(name, *args, **kwargs)
+        return unittest.mock.MagicMock()
+
+    builtin_import = __import__
+    # Patch the builtin import function during loading, to use our mock from above
+    with unittest.mock.patch("builtins.__import__", side_effect=selective_import):
+        spec.loader.exec_module(module)
+    return module
