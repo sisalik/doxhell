@@ -80,6 +80,10 @@ help = "Auto-sort imports"
 cmd = "isort --check-only --diff $LINT_DIRS"
 help = "Check import sorting"
 
+[tool.poe.tasks._success_message]
+cmd = "python scripts/success_message.py"
+help = "Print a success message at the end of a run"
+
 [tool.poe.tasks._toml-sort]
 cmd = "toml-sort --in-place pyproject.toml"
 help = "Check pyproject.toml sorting"
@@ -113,7 +117,7 @@ cmd = "mypy $LINT_DIRS"
 help = "Run type checking using mypy"
 
 [tool.poe.tasks.pre-commit]
-sequence = ["check-format", "lint", "mypy", "test"]
+sequence = ["check-format", "lint", "mypy", "test", "_success_message"]
 help = "Run format check, linter, type checker and tests"
 
 [tool.poe.tasks.run]
