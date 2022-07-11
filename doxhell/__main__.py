@@ -123,6 +123,13 @@ def render(
         doxhell.console.print_result_good(f"Wrote {', '.join(output_map.values())}")
 
 
+def _main():
+    """Main entry point."""
+    # Use loguru to catch errors in the CLI and print a nice traceback.
+    with logger.catch():
+        cli()
+
+
 def _setup_logging(verbosity: int) -> None:
     logger.remove()
     if verbosity == 0:
@@ -163,5 +170,4 @@ def _map_output_formats(
 
 
 if __name__ == "__main__":
-    with logger.catch():
-        cli()
+    _main()

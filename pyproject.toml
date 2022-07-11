@@ -159,4 +159,4 @@ cssbeautifier = "^1.14.4"
 djlint = "^1.7.0"
 
 [tool.poetry.scripts]
-doxhell = "doxhell.__main__:cli"
+doxhell = "doxhell.__main__:_main"
