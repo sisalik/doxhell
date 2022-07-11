@@ -5,6 +5,7 @@ from typing import Dict, Iterable
 import jinja2
 import pdfkit  # type: ignore  # Skip type checking this module - no library stubs
 
+import doxhell.utils
 from doxhell.loaders import Test
 
 
@@ -29,8 +30,9 @@ def render_protocol(
 
 
 def _render_html(tests: Iterable[Test]) -> str:
-    env = jinja2.Environment(loader=jinja2.FileSystemLoader("templates"))
-    template = env.get_template("test-protocol.jinja")
+    templates_path = str(doxhell.utils.get_package_path() / "templates")
+    env = jinja2.Environment(loader=jinja2.FileSystemLoader(templates_path))
+    template = env.get_template("protocol.jinja2")
     return template.render(
         tests=tests, title="Test Protocol", render_date=datetime.datetime.now()
     )
@@ -47,4 +49,5 @@ def _render_pdf(html_content: str, pdf_path: str) -> None:
             "footer-center": "[doctitle]",
             "footer-right": "Page [page] of [topage]",
         },
+        toc={"toc-header-text": "Table of Contents"},
     )

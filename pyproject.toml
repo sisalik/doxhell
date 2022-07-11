@@ -39,6 +39,7 @@ use_parentheses = true
 
 [tool.poe.env]
 LINT_DIRS = "doxhell scripts tests"
+TEMPLATES_DIR = "doxhell/templates"
 
 [tool.poe.tasks._autoflake]
 cmd = """
@@ -56,19 +57,19 @@ cmd = "black --check --diff --color $LINT_DIRS"
 help = "Run black to check format"
 
 [tool.poe.tasks._format-css]
-cmd = "python scripts/format_css.py templates"
+cmd = "python scripts/format_css.py $TEMPLATES_DIR"
 help = "Auto-format CSS files"
 
 [tool.poe.tasks._format-css-check]
-cmd = "python scripts/format_css.py --check templates"
+cmd = "python scripts/format_css.py --check $TEMPLATES_DIR"
 help = "Check format of CSS files"
 
 [tool.poe.tasks._format-templates]
-cmd = "djlint templates --reformat --extension .jinja2"
+cmd = "djlint $TEMPLATES_DIR --reformat --extension .jinja2"
 help = "Auto-format Jinja2 templates"
 
 [tool.poe.tasks._format-templates-check]
-cmd = "djlint templates --check --extension .jinja2"
+cmd = "djlint $TEMPLATES_DIR --check --extension .jinja2"
 help = "Check format of Jinja2 templates"
 
 [tool.poe.tasks._isort]
@@ -104,7 +105,7 @@ cmd = "pflake8 $LINT_DIRS"
 help = "Lint Python code"
 
 [tool.poe.tasks.lint-templates]
-cmd = "djlint templates --lint --extension .jinja2"
+cmd = "djlint $TEMPLATES_DIR --lint --extension .jinja2"
 help = "Lint Jinja2 templates"
 
 [tool.poe.tasks.mypy]
@@ -120,13 +121,13 @@ cmd = "python -m doxhell"
 help = "Run the tool"
 
 [tool.poe.tasks.test]
-cmd = "pytest"
+cmd = "pytest tests"
 help = "Run all tests"
 
 [tool.poetry]
 name = "doxhell"
 version = "0.1.0"
-description = ""
+description = "Automate software V&V documentation work."
 authors = ["Siim Lepik <siim.lepik@gmail.com>"]
 
 [tool.poetry.dependencies]
