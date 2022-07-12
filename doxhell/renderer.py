@@ -1,9 +1,11 @@
-import datetime
 import enum
-from typing import Dict, Iterable
+import tempfile
+from pathlib import Path
+from typing import Any, Dict, Iterable
 
 import jinja2
 import pdfkit  # type: ignore  # Skip type checking this module - no library stubs
+from loguru import logger
 
 import doxhell.utils
 from doxhell.loaders import Test
@@ -19,35 +21,76 @@ class OutputFormat(str, enum.Enum):
 def render_protocol(
     tests: Iterable[Test],
     output_map: Dict[OutputFormat, str],
+    context: Dict[str, Any],
 ) -> None:
     """Render the manual test protocol in specified formats, to specified files."""
-    html_content = _render_html(tests)
+    # Inject tests list and the logo image path into the context
+    # TODO: Get paths from a config file
+    context.update(
+        {
+            "tests": tests,
+            "logo_path": str(
+                doxhell.utils.get_package_path() / "templates" / "logo.png"
+            ),
+        }
+    )
+    # Initialise the Jinja2 environment
+    templates_path = str(doxhell.utils.get_package_path() / "templates")
+    env = jinja2.Environment(loader=jinja2.FileSystemLoader(templates_path))
+    # Render the output files
+    html_content = _render_html(env, "protocol.jinja2", context)
     if OutputFormat.HTML in output_map:
         with open(output_map[OutputFormat.HTML], "w") as file:
             file.write(html_content)
     if OutputFormat.PDF in output_map:
-        _render_pdf(html_content, output_map[OutputFormat.PDF])
+        _render_pdf(html_content, output_map[OutputFormat.PDF], env, context)
 
 
-def _render_html(tests: Iterable[Test]) -> str:
-    templates_path = str(doxhell.utils.get_package_path() / "templates")
-    env = jinja2.Environment(loader=jinja2.FileSystemLoader(templates_path))
-    template = env.get_template("protocol.jinja2")
-    return template.render(
-        tests=tests, title="Test Protocol", render_date=datetime.datetime.now()
-    )
+def _render_html(
+    env: jinja2.Environment, template_name: str, context: Dict[str, Any]
+) -> str:
+    template = env.get_template(template_name)
+    return template.render(**context)
 
 
-def _render_pdf(html_content: str, pdf_path: str) -> None:
-    pdfkit.from_string(
-        html_content,
-        pdf_path,
-        options={
-            "enable-forms": True,
-            "footer-font-size": 8,
-            "footer-left": "[isodate]",
-            "footer-center": "[doctitle]",
-            "footer-right": "Page [page] of [topage]",
-        },
-        toc={"toc-header-text": "Table of Contents"},
-    )
+def _render_temporary_html_file(
+    env: jinja2.Environment, template_name: str, context: Dict[str, Any]
+) -> Path:
+    """Render the specified template into a temporary HTML file."""
+    html_content = _render_html(env, template_name, context)
+    with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as file:
+        file.write(html_content.encode("utf-8"))
+        return Path(file.name)
+
+
+def _render_pdf(
+    html_content: str, pdf_path: str, env: jinja2.Environment, context: Dict[str, Any]
+) -> None:
+    # Render the cover page and footer content into temporary HTML files. This is needed
+    # because the HTML for these can only be passed to wkhtmltopdf as a file path, not
+    # as a string.
+    cover_html_file = _render_temporary_html_file(env, "cover.jinja2", context)
+    logger.debug("Rendered cover HTML to {}", cover_html_file)
+    try:
+        footer_html_file = _render_temporary_html_file(env, "footer.jinja2", context)
+        logger.debug("Rendered footer HTML to {}", footer_html_file)
+        pdfkit.from_string(
+            html_content,
+            pdf_path,
+            options={
+                "enable-forms": True,
+                "enable-local-file-access": True,  # Needed for local images
+                "footer-html": footer_html_file,
+                "margin-top": "10mm",  # Default margins get set to 0 when footer added
+                "margin-bottom": "10mm",
+            },
+            cover=cover_html_file,
+            cover_first=True,
+            toc={"toc-header-text": "Table of Contents"},
+        )
+    finally:
+        # Ensure the temporary files are always deleted
+        cover_html_file.unlink(missing_ok=True)
+        logger.debug("Deleted cover HTML file {}", cover_html_file)
+        footer_html_file.unlink(missing_ok=True)
+        logger.debug("Deleted footer HTML file {}", footer_html_file)

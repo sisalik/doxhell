@@ -2,18 +2,14 @@
 <html lang="en">
     <head>
         <title>{{ title }}</title>
-        <style>{% include 'style.css' %}</style>
+        <style>{% include 'protocol.css' %}</style>
     </head>
     <body>
-        <div id="front-page">
-            <h1>{{ title }}</h1>
-            <h3>Published {{ render_date.strftime('%Y-%m-%d') }}</h3>
-        </div>
         <div id="test-pages">
             {% for test in tests if not test.automated %}
                 <h1 class="test-id">{{ test.id }}</h1>
                 <p class="test-description">{{ test.description }}</p>
-                <h3>Test conditions</h3>
+                <p class="section-title">Test conditions</p>
                 <table class="test-conditions">
                     <tr>
                         <td>Tester name</td>
@@ -34,7 +30,7 @@
                         </td>
                     </tr>
                 </table>
-                <h3>Test procedure</h3>
+                <p class="section-title">Test procedure</p>
                 <table class="test-procedure">
                     <thead>
                         <tr>

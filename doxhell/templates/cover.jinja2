@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<head>
+    <style>
+        body {
+            font-family: sans-serif;
+        }
+
+        #front-page {
+            padding-top: 500px;
+            text-align: center;
+        }
+
+        #front-page h1 {
+            font-size: 40px;
+        }
+
+        #front-page h3 {
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="front-page">
+        <h1>{{ title }}</h1>
+        <h3>{{ author }}</h3>
+        <h3>{{ render_date.strftime('%Y-%m-%d') }}</h3>
+    </div>
+</body>

@@ -21,7 +21,7 @@ table.test-conditions {
 }
 
 table.test-conditions td:first-of-type {
-    width: 30%;
+    width: 35%;
     text-align: right;
     vertical-align: middle;
 }
@@ -67,6 +67,12 @@ table tbody tr:last-of-type {
 
 .test-description {
     font-style: italic;
+}
+
+.section-title {
+    font-size: 20px;
+    font-weight: bold;
+    /* margin-bottom: 20px; */
 }
 
 input[type=checkbox] {

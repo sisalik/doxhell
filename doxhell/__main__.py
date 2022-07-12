@@ -1,3 +1,4 @@
+import datetime
 import sys
 from pathlib import Path
 from typing import Dict, Tuple
@@ -119,7 +120,15 @@ def render(
         sys.exit(1)
 
     if target == "protocol":
-        doxhell.renderer.render_protocol(tests, output_map)
+        # TODO: Load context from config file/CLI options/package metadata etc.
+        # Pass metadata as context to be included in the rendered documents. Used in
+        # Jinja templates.
+        context = {
+            "title": "DOC-001 Application Test Protocol",
+            "author": "Siim Lepik",
+            "render_date": datetime.datetime.now(),
+        }
+        doxhell.renderer.render_protocol(tests, output_map, context)
         doxhell.console.print_result_good(f"Wrote {', '.join(output_map.values())}")
 
 
