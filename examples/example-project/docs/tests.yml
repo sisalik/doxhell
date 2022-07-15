@@ -1,15 +1,15 @@
-- test: gui
+- id: gui
   description: Test the GUI of the application
-  covers:
+  verifies:
     - REQ-001
     - REQ-002
   steps:
     - given: User is logged on to the test PC
       when: The application is launched
       then: A GUI is displayed
-- test: program_board
+- id: program_board
   description: Test that the board can be programmed successfully
-  covers:
+  verifies:
     - REQ-011
     - REQ-012
     - REQ-013

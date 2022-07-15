@@ -7,26 +7,26 @@
     <body>
         <div id="test-pages">
             {% for test in tests if not test.automated %}
-                <h1 class="test-id">{{ test.id }}</h1>
+                <h1 class="test-id">{{ test.full_name }}</h1>
                 <p class="test-description">{{ test.description }}</p>
                 <p class="section-title">Test conditions</p>
                 <table class="test-conditions">
                     <tr>
                         <td>Tester name</td>
                         <td>
-                            <textarea class="conditions-box" name="name-{{ test.id }}"></textarea>
+                            <textarea class="conditions-box" name="name-{{ test.full_name }}"></textarea>
                         </td>
                     </tr>
                     <tr>
                         <td>Date</td>
                         <td>
-                            <textarea class="conditions-box" name="date-{{ test.id }}"></textarea>
+                            <textarea class="conditions-box" name="date-{{ test.full_name }}"></textarea>
                         </td>
                     </tr>
                     <tr>
                         <td>Software version</td>
                         <td>
-                            <textarea class="conditions-box" name="version-{{ test.id }}"></textarea>
+                            <textarea class="conditions-box" name="version-{{ test.full_name }}"></textarea>
                         </td>
                     </tr>
                 </table>
@@ -50,7 +50,7 @@
                                 <td>{{ step.when }}</td>
                                 <td>{{ step.then }}</td>
                                 <td>
-                                    <input type="checkbox" name="pass-{{ test.id }}-{{ loop.index }}" />
+                                    <input type="checkbox" name="pass-{{ test.full_name }}-{{ loop.index }}" />
                                 </td>
                                 <td>
                                     {% if step.evidence %}
@@ -58,7 +58,8 @@
                                             <span>Observation</span>
                                         {% else %}
                                             <label>{{ step.evidence.value | title }} file:</label>
-                                            <textarea class="evidence-box" name="evidence-{{ test.id }}-{{ loop.index }}"></textarea>
+                                            <textarea class="evidence-box"
+                                                      name="evidence-{{ test.full_name }}-{{ loop.index }}"></textarea>
                                         {% endif %}
                                     {% else %}
                                         <span>N/A</span>
@@ -69,7 +70,7 @@
                     </tbody>
                 </table>
                 <label>Comments:</label>
-                <textarea class="comments-box" name="comments-{{ test.id }}"></textarea>
+                <textarea class="comments-box" name="comments-{{ test.full_name }}"></textarea>
                 {% if not loop.last %}<div class="page-break"></div>{% endif %}
             {% endfor %}
         </div>

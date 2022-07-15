@@ -17,7 +17,9 @@ def print_coverage_summary(requirements: Iterable[Requirement]) -> None:
     for requirement in requirements:
         if requirement.tests:
             colour_str = "[green]"
-            tests_str = colour_str + "\n".join(test.id for test in requirement.tests)
+            tests_str = colour_str + "\n".join(
+                test.full_name for test in requirement.tests
+            )
             type_str = "\n".join(
                 "[cyan]Auto" if test.automated else "[magenta]Manual"
                 for test in requirement.tests

@@ -40,9 +40,11 @@ def render_protocol(
     # Render the output files
     html_content = _render_html(env, "protocol.jinja2", context)
     if OutputFormat.HTML in output_map:
+        logger.info("Rendering HTML output")
         with open(output_map[OutputFormat.HTML], "w") as file:
             file.write(html_content)
     if OutputFormat.PDF in output_map:
+        logger.info("Rendering PDF output")
         _render_pdf(html_content, output_map[OutputFormat.PDF], env, context)
 
 
@@ -68,7 +70,7 @@ def _render_pdf(
 ) -> None:
     # Render the cover page and footer content into temporary HTML files. This is needed
     # because the HTML for these can only be passed to wkhtmltopdf as a file path, not
-    # as a string.
+    # as a string. The main body of the page _can_ be passed as a string though.
     cover_html_file = _render_temporary_html_file(env, "cover.jinja2", context)
     logger.debug("Rendered cover HTML to {}", cover_html_file)
     try:

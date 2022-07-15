@@ -141,13 +141,14 @@ def _main():
 
 def _setup_logging(verbosity: int) -> None:
     logger.remove()
-    if verbosity == 0:
-        logger.add(sys.stderr, level="WARNING")
-    elif verbosity == 1:
-        logger.add(sys.stderr, level="INFO")
-    elif verbosity == 2:
-        logger.add(sys.stderr, level="DEBUG")
-    else:
+    verbosity_to_level = {
+        0: "WARNING",  # No -v argument
+        1: "INFO",  # -v
+        2: "DEBUG",  # -vv
+    }
+    try:
+        logger.add(sys.stderr, level=verbosity_to_level[verbosity])
+    except KeyError:
         raise ValueError(f"Invalid verbosity level: {verbosity}")
 
 

@@ -1,4 +1,3 @@
-import dataclasses
 import enum
 import importlib
 import inspect
@@ -9,26 +8,27 @@ from typing import Iterable, Iterator, List, Optional
 
 import yaml
 from loguru import logger
+from pydantic import BaseModel, ValidationError, parse_obj_as, validator
 
 
-@dataclasses.dataclass
-class Requirement:
+class Requirement(BaseModel):
     """A requirement found in the documentation."""
 
     id: str
-    tests: List["Test"] = dataclasses.field(default_factory=list)
+    specification: str
+    rationale: str
+    parent: str = ""
+    obsolete: bool = False
+    obsolete_reason: str = ""
+    # List of tests populated during cross check with tests
+    tests: List["Test"] = []
 
-
-@dataclasses.dataclass
-class Test:
-    """A test found in the documentation or automated test module."""
-
-    id: str
-    description: str
-    requirement_ids: List[str]
-    automated: bool
-    requirements: List[Requirement] = dataclasses.field(default_factory=list)
-    steps: List["TestStep"] = dataclasses.field(default_factory=list)
+    @validator("obsolete_reason", always=True)
+    def obsolete_reason_must_be_given(cls, v, values):
+        """Validate that obsolete_reason is given if obsolete is True."""
+        if values["obsolete"] and not v:
+            raise ValueError("obsolete_reason is required if obsolete is True")
+        return v
 
 
 class EvidenceType(str, enum.Enum):
@@ -40,14 +40,38 @@ class EvidenceType(str, enum.Enum):
     SETTINGS = "settings"
 
 
-@dataclasses.dataclass
-class TestStep:
+class TestStep(BaseModel):
     """A step in a test."""
 
     given: str
     when: str
     then: str
-    evidence: Optional[EvidenceType] = None
+    evidence: Optional[EvidenceType]
+
+
+class Test(BaseModel):
+    """A test found in the documentation or automated test module."""
+
+    id: str
+    description: str
+    verifies: List[str]
+    steps: List[TestStep] = []
+    # List of requirements populated during cross check with requirements
+    requirements: List[Requirement] = []
+    automated: bool = False
+    file_path: Optional[Path]
+
+    @validator("automated", always=True)
+    def steps_must_be_defined_for_manual_test(cls, v, values):
+        """Validate that steps are defined if automated is False."""
+        if not v and not values["steps"]:
+            raise ValueError("steps are required for a manual test")
+        return v
+
+    @property
+    def full_name(self) -> str:
+        """Return the full name of the test."""
+        return f"{self.file_path}::{self.id}"
 
 
 def load_requirements(docs_root_dirs: Iterable[Path | str]) -> Iterator[Requirement]:
@@ -77,8 +101,7 @@ def _load_requirements_single(docs_root_dir: Path | str = ".") -> Iterator[Requi
     for item in docs_root_dir.rglob("*.y*ml"):
         if item.stem == "requirements":
             logger.debug("Found requirements file: {}", item)
-            with open(item) as file:
-                yield from _load_requirements_from_yaml(file)
+            yield from _load_requirements_from_file(item)
 
 
 def _load_manual_tests_single(docs_root_dir: Path | str = ".") -> Iterator[Test]:
@@ -90,8 +113,7 @@ def _load_manual_tests_single(docs_root_dir: Path | str = ".") -> Iterator[Test]
     for item in docs_root_dir.rglob("*.y*ml"):
         if item.stem == "tests":
             logger.debug("Found tests file: {}", item)
-            with open(item) as file:
-                yield from _load_tests_from_yaml(file)
+            yield from _load_tests_from_file(item)
 
 
 def _load_automated_tests_single(test_root_dir: Path | str = ".") -> Iterator[Test]:
@@ -100,41 +122,39 @@ def _load_automated_tests_single(test_root_dir: Path | str = ".") -> Iterator[Te
     test_files = _find_test_files(test_root_dir)
     for test_file in test_files:
         for test_function in _find_test_functions(test_file):
+            # Check if the test function has been decorated with @verifies
             if hasattr(test_function, "requirement_ids"):
-                full_test_name = f"{test_file}::{test_function.__name__}"
                 test = Test(
-                    full_test_name,
-                    str(test_function.__doc__),
+                    id=test_function.__name__,
+                    description=str(test_function.__doc__),
                     # mypy doesn't think this function has a "requirement_ids" attribute
                     # but we clearly guard against that above
-                    test_function.requirement_ids,  # type: ignore
-                    True,
+                    verifies=test_function.requirement_ids,  # type: ignore
+                    automated=True,
+                    file_path=test_file,
                 )
                 yield test
 
 
-def _load_requirements_from_yaml(file) -> Iterator[Requirement]:
+def _load_requirements_from_file(file_path: Path) -> Iterator[Requirement]:
     """Load all requirements from the given YAML file."""
-    # TODO: Use pydantic (?) to validate the YAML file
-    for member in yaml.safe_load(file):
-        yield Requirement(member["requirement"])
+    with open(file_path) as file:
+        yaml_content = file.read()
+    data = yaml.safe_load(yaml_content)
+    try:
+        yield from parse_obj_as(List[Requirement], data)
+    except ValidationError:
+        logger.error("Error parsing requirements file: {}", file_path)
+        raise
 
 
-def _load_tests_from_yaml(file) -> Iterator[Test]:
+def _load_tests_from_file(file_path: Path) -> Iterator[Test]:
     """Load all tests from the given YAML file."""
-    # TODO: Use pydantic (?) to validate the YAML file
-    for member in yaml.safe_load(file):
-        full_test_name = f"{file.name}::{member['test']}"
-        test = Test(full_test_name, member["description"], member["covers"], False)
-        for step in member["steps"]:
-            test_step = TestStep(
-                step["given"],
-                step["when"],
-                step["then"],
-                EvidenceType(step["evidence"]) if "evidence" in step else None,
-            )
-            test.steps.append(test_step)
-        logger.debug(test)
+    with open(file_path) as file:
+        yaml_content = file.read()
+    for member in yaml.safe_load(yaml_content):
+        test = Test(**member)
+        test.file_path = file_path
         yield test
 
 
