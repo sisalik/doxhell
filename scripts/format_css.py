@@ -4,7 +4,7 @@ from collections.abc import Iterator
 from pathlib import Path
 
 import click
-import cssbeautifier  # type: ignore  # Skip type checking this module, no library stubs
+import cssbeautifier
 
 
 @click.command()

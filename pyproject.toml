@@ -37,8 +37,11 @@ multi_line_output = 3
 skip_glob = ["**/.**"]
 use_parentheses = true
 
+[tool.mypy]
+mypy_path = "$MYPY_CONFIG_FILE_DIR/stubs"
+
 [tool.poe.env]
-LINT_DIRS = "doxhell scripts tests"
+LINT_DIRS = "doxhell scripts stubs tests"
 TEMPLATES_DIR = "doxhell/templates"
 
 [tool.poe.tasks._autoflake]

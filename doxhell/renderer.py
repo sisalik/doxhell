@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any
 
 import jinja2
-import pdfkit  # type: ignore  # Skip type checking this module - no library stubs
+import pdfkit
 from loguru import logger
 
 import doxhell.utils
@@ -87,7 +87,7 @@ def _render_pdf(
                 "margin-top": "10mm",  # Default margins get set to 0 when footer added
                 "margin-bottom": "10mm",
             },
-            cover=cover_html_file,
+            cover=str(cover_html_file),
             cover_first=True,
             toc={"toc-header-text": "Table of Contents"},
         )
