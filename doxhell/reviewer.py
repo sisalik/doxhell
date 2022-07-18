@@ -1,7 +1,7 @@
 import dataclasses
 import enum
 import itertools
-from typing import Iterable, List, Tuple
+from collections.abc import Iterable
 
 from loguru import logger
 
@@ -29,8 +29,8 @@ class Severity(str, enum.Enum):
 
 
 def review(
-    test_dirs: Tuple[str, ...], docs_dirs: Tuple[str, ...]
-) -> Tuple[List[Requirement], List[Test], List[Problem]]:
+    test_dirs: tuple[str, ...], docs_dirs: tuple[str, ...]
+) -> tuple[list[Requirement], list[Test], list[Problem]]:
     """Validate requirements and tests; check coverage."""
     # Load all requirements and tests and convert to lists since we need to iterate
     # over them multiple times
@@ -52,7 +52,7 @@ def _map_coverage(requirements: Iterable[Requirement], tests: Iterable[Test]) ->
             test.requirements.append(requirement)
 
 
-def _check_coverage(requirements: Iterable[Requirement]) -> List[Problem]:
+def _check_coverage(requirements: Iterable[Requirement]) -> list[Problem]:
     """Check for requirements without tests."""
     problems = []
     for requirement in requirements:
@@ -63,7 +63,7 @@ def _check_coverage(requirements: Iterable[Requirement]) -> List[Problem]:
     return problems
 
 
-def _check_undefined_requirements(tests: Iterable[Test]) -> List[Problem]:
+def _check_undefined_requirements(tests: Iterable[Test]) -> list[Problem]:
     """Check for tests that reference non-existent requirements."""
     problems = []
     for test in tests:

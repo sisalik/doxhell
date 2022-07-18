@@ -2,9 +2,9 @@ import enum
 import importlib
 import inspect
 import unittest.mock
+from collections.abc import Iterable, Iterator
 from pathlib import Path
 from types import FunctionType, ModuleType
-from typing import Iterable, Iterator, List, Optional
 
 import yaml
 from loguru import logger
@@ -21,7 +21,7 @@ class Requirement(BaseModel):
     obsolete: bool = False
     obsolete_reason: str = ""
     # List of tests populated during cross check with tests
-    tests: List["Test"] = []
+    tests: list["Test"] = []
 
     @validator("obsolete_reason", always=True)
     def obsolete_reason_must_be_given(cls, v, values):
@@ -46,7 +46,7 @@ class TestStep(BaseModel):
     given: str
     when: str
     then: str
-    evidence: Optional[EvidenceType]
+    evidence: EvidenceType | None
 
 
 class Test(BaseModel):
@@ -54,12 +54,12 @@ class Test(BaseModel):
 
     id: str
     description: str
-    verifies: List[str]
-    steps: List[TestStep] = []
+    verifies: list[str]
+    steps: list[TestStep] = []
     # List of requirements populated during cross check with requirements
-    requirements: List[Requirement] = []
+    requirements: list[Requirement] = []
     automated: bool = False
-    file_path: Optional[Path]
+    file_path: Path | None
 
     @validator("automated", always=True)
     def steps_must_be_defined_for_manual_test(cls, v, values):
@@ -142,7 +142,7 @@ def _load_requirements_from_file(file_path: Path) -> Iterator[Requirement]:
         yaml_content = file.read()
     data = yaml.safe_load(yaml_content)
     try:
-        yield from parse_obj_as(List[Requirement], data)
+        yield from parse_obj_as(list[Requirement], data)
     except ValidationError:
         logger.error("Error parsing requirements file: {}", file_path)
         raise

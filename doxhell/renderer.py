@@ -1,7 +1,8 @@
 import enum
 import tempfile
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Dict, Iterable
+from typing import Any
 
 import jinja2
 import pdfkit  # type: ignore  # Skip type checking this module - no library stubs
@@ -20,8 +21,8 @@ class OutputFormat(str, enum.Enum):
 
 def render_protocol(
     tests: Iterable[Test],
-    output_map: Dict[OutputFormat, str],
-    context: Dict[str, Any],
+    output_map: dict[OutputFormat, str],
+    context: dict[str, Any],
 ) -> None:
     """Render the manual test protocol in specified formats, to specified files."""
     # Inject tests list and the logo image path into the context
@@ -49,14 +50,14 @@ def render_protocol(
 
 
 def _render_html(
-    env: jinja2.Environment, template_name: str, context: Dict[str, Any]
+    env: jinja2.Environment, template_name: str, context: dict[str, Any]
 ) -> str:
     template = env.get_template(template_name)
     return template.render(**context)
 
 
 def _render_temporary_html_file(
-    env: jinja2.Environment, template_name: str, context: Dict[str, Any]
+    env: jinja2.Environment, template_name: str, context: dict[str, Any]
 ) -> Path:
     """Render the specified template into a temporary HTML file."""
     html_content = _render_html(env, template_name, context)
@@ -66,7 +67,7 @@ def _render_temporary_html_file(
 
 
 def _render_pdf(
-    html_content: str, pdf_path: str, env: jinja2.Environment, context: Dict[str, Any]
+    html_content: str, pdf_path: str, env: jinja2.Environment, context: dict[str, Any]
 ) -> None:
     # Render the cover page and footer content into temporary HTML files. This is needed
     # because the HTML for these can only be passed to wkhtmltopdf as a file path, not

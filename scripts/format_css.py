@@ -1,7 +1,7 @@
 import difflib
 import sys
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Iterator, List, Tuple
 
 import click
 import cssbeautifier  # type: ignore  # Skip type checking this module, no library stubs
@@ -38,12 +38,12 @@ def cli(path: Path | str, check: bool) -> None:
         sys.exit(0)
 
 
-def _format_dir(dir_path: Path, check: bool) -> Iterator[Tuple[Path, List[str]]]:
+def _format_dir(dir_path: Path, check: bool) -> Iterator[tuple[Path, list[str]]]:
     for file in dir_path.glob("**/*.css"):
         yield file, _format_file(file, check)
 
 
-def _format_file(file_path: Path, check: bool) -> List[str]:
+def _format_file(file_path: Path, check: bool) -> list[str]:
     with open(file_path, "r") as file:
         original = file.read()
     formatted = cssbeautifier.beautify(original)
@@ -62,7 +62,7 @@ def _format_file(file_path: Path, check: bool) -> List[str]:
     return diff
 
 
-def _print_diff(diff: List[str]) -> None:
+def _print_diff(diff: list[str]) -> None:
     print()
     for line in diff:
         if line.startswith("+"):

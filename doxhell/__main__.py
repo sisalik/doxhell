@@ -1,7 +1,6 @@
 import datetime
 import sys
 from pathlib import Path
-from typing import Dict, Tuple
 
 import click
 from loguru import logger
@@ -56,7 +55,7 @@ def cli():
 
 @cli.command(cls=StandardCommand)
 def review(
-    verbosity: int, test_dirs: Tuple[str, ...], docs_dirs: Tuple[str, ...]
+    verbosity: int, test_dirs: tuple[str, ...], docs_dirs: tuple[str, ...]
 ) -> None:
     """Validate requirements and tests; check coverage."""
     _setup_logging(verbosity)
@@ -100,12 +99,12 @@ def review(
 )
 def render(
     target: str,
-    formats: Tuple[OutputFormat, ...],
-    output_files: Tuple[str, ...],
+    formats: tuple[OutputFormat, ...],
+    output_files: tuple[str, ...],
     force_overwrite: bool,
     verbosity: int,
-    test_dirs: Tuple[str, ...],
-    docs_dirs: Tuple[str, ...],
+    test_dirs: tuple[str, ...],
+    docs_dirs: tuple[str, ...],
 ) -> None:
     """Produce PDF output documents from source files."""
     if target in ("requirements", "coverage"):
@@ -154,10 +153,10 @@ def _setup_logging(verbosity: int) -> None:
 
 def _map_output_formats(
     target: str,
-    formats: Tuple[OutputFormat, ...],
-    output_files: Tuple[str, ...],
+    formats: tuple[OutputFormat, ...],
+    output_files: tuple[str, ...],
     force_overwrite: bool,
-) -> Dict[OutputFormat, str]:
+) -> dict[OutputFormat, str]:
     """Validate and map output formats to output files."""
     # If no output files are specified, use the default output file paths.
     if not output_files:
