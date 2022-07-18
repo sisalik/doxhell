@@ -2,13 +2,15 @@ import enum
 import importlib
 import inspect
 import unittest.mock
-from collections.abc import Iterable, Iterator
+from collections.abc import Callable, Iterable, Iterator
 from pathlib import Path
-from types import FunctionType, ModuleType
+from types import ModuleType
 
 import yaml
 from loguru import logger
 from pydantic import BaseModel, ValidationError, parse_obj_as, validator
+
+from doxhell.decorators import VerificationTest
 
 
 class Requirement(BaseModel):
@@ -123,13 +125,11 @@ def _load_automated_tests_single(test_root_dir: Path | str = ".") -> Iterator[Te
     for test_file in test_files:
         for test_function in _find_test_functions(test_file):
             # Check if the test function has been decorated with @verifies
-            if hasattr(test_function, "requirement_ids"):
+            if isinstance(test_function, VerificationTest):
                 test = Test(
                     id=test_function.__name__,
                     description=str(test_function.__doc__),
-                    # mypy doesn't think this function has a "requirement_ids" attribute
-                    # but we clearly guard against that above
-                    verifies=test_function.requirement_ids,  # type: ignore
+                    verifies=test_function.requirement_ids,
                     automated=True,
                     file_path=test_file,
                 )
@@ -180,7 +180,7 @@ def _find_test_files(path: str | Path) -> Iterator[Path]:
             yield item
 
 
-def _find_test_functions(file_path: Path) -> Iterator[FunctionType]:
+def _find_test_functions(file_path: Path) -> Iterator[Callable]:
     """Find all test functions in the given module."""
     module = _import_module(file_path)
     # TODO: Support unittest style test classes
