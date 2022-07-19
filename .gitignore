@@ -128,3 +128,9 @@ cython_debug/
 # IDEs
 .idea/
 .vscode/
+
+# Rendered output files
+requirements.html
+requirements.pdf
+protocol.html
+protocol.pdf

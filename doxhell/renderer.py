@@ -1,6 +1,6 @@
+import datetime
 import enum
 import tempfile
-from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
 
@@ -9,7 +9,14 @@ import pdfkit
 from loguru import logger
 
 import doxhell.utils
-from doxhell.loaders import Test
+
+
+class OutputType(str, enum.Enum):
+    """The type of document to be rendered."""
+
+    REQUIREMENTS = "requirements"
+    COVERAGE = "coverage"
+    PROTOCOL = "protocol"
 
 
 class OutputFormat(str, enum.Enum):
@@ -19,17 +26,17 @@ class OutputFormat(str, enum.Enum):
     PDF = "pdf"
 
 
-def render_protocol(
-    tests: Iterable[Test],
+def render(
+    target: OutputType,
     output_map: dict[OutputFormat, str],
     context: dict[str, Any],
 ) -> None:
-    """Render the manual test protocol in specified formats, to specified files."""
+    """Render the target document type in specified formats, to specified files."""
     # Inject tests list and the logo image path into the context
     # TODO: Get paths from a config file
     context.update(
         {
-            "tests": tests,
+            "render_date": datetime.datetime.now(),
             "logo_path": str(
                 doxhell.utils.get_package_path() / "templates" / "logo.png"
             ),
@@ -39,10 +46,10 @@ def render_protocol(
     templates_path = str(doxhell.utils.get_package_path() / "templates")
     env = jinja2.Environment(loader=jinja2.FileSystemLoader(templates_path))
     # Render the output files
-    html_content = _render_html(env, "protocol.jinja2", context)
+    html_content = _render_html(env, f"{target}.jinja2", context)
     if OutputFormat.HTML in output_map:
         logger.info("Rendering HTML output")
-        with open(output_map[OutputFormat.HTML], "w") as file:
+        with open(output_map[OutputFormat.HTML], "w", encoding="utf-8") as file:
             file.write(html_content)
     if OutputFormat.PDF in output_map:
         logger.info("Rendering PDF output")

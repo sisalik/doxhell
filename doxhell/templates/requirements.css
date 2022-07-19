@@ -1,0 +1,45 @@
+body {
+    font-family: sans-serif;
+}
+
+.requirement {
+    padding: 5px 10px 5px;
+    border-top: silver solid thin;
+}
+
+.requirement:nth-of-type(even) {
+    background-color: #f3f3f3;
+}
+
+.requirement:last-of-type {
+    border-bottom: silver solid thin;
+}
+
+.requirement.obsolete {
+    color: grey;
+    text-decoration: line-through;
+}
+
+.requirement-id,
+.parent-id {
+    display: inline-block;
+    margin: 10px 0 0;
+}
+
+.parent-id {
+    float: right;
+    font-weight: bold;
+}
+
+.obsolete-reason {
+    color: blueviolet;
+    font-weight: bold;
+    display: inline-block;
+    /* Clear text-decoration */
+    margin-bottom: 0;
+}
+
+.rationale {
+    font-style: italic;
+    font-size: 12px;
+}

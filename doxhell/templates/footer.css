@@ -1,0 +1,27 @@
+body {
+    font-family: sans-serif;
+}
+
+#footer {
+    width: 100%;
+}
+
+#left {
+    width: 10%;
+    text-align: left;
+}
+
+#middle {
+    width: 80%;
+    text-align: center;
+}
+
+#right {
+    width: 10%;
+    text-align: right;
+}
+
+#logo {
+    height: 30px;
+    width: auto;
+}

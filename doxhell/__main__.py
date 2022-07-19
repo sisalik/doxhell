@@ -1,4 +1,3 @@
-import datetime
 import sys
 from pathlib import Path
 
@@ -9,7 +8,7 @@ import doxhell.console
 import doxhell.loaders
 import doxhell.renderer
 import doxhell.reviewer
-from doxhell.renderer import OutputFormat
+from doxhell.renderer import OutputFormat, OutputType
 
 
 class StandardCommand(click.Command):
@@ -70,7 +69,7 @@ def review(
 
 
 @cli.command(cls=StandardCommand)
-@click.argument("target", type=click.Choice(["requirements", "coverage", "protocol"]))
+@click.argument("target", type=click.Choice(list(OutputType)))
 @click.option(
     "-t",
     "--format",
@@ -98,7 +97,7 @@ def review(
     help="Force overwriting of output files.",
 )
 def render(
-    target: str,
+    target: OutputType,
     formats: tuple[OutputFormat, ...],
     output_files: tuple[str, ...],
     force_overwrite: bool,
@@ -107,28 +106,32 @@ def render(
     docs_dirs: tuple[str, ...],
 ) -> None:
     """Produce PDF output documents from source files."""
-    if target in ("requirements", "coverage"):
+    if target == OutputType.COVERAGE:
         raise NotImplementedError(f"Rendering {target} is not yet implemented")
     output_map = _map_output_formats(target, formats, output_files, force_overwrite)
 
     _setup_logging(verbosity)
-    _, tests, problems = doxhell.reviewer.review(test_dirs, docs_dirs)
+    requirements, tests, problems = doxhell.reviewer.review(test_dirs, docs_dirs)
     if problems:
         doxhell.console.print_problems(problems)
         doxhell.console.print_result_bad("Documentation is invalid; can't continue 😢")
         sys.exit(1)
 
-    if target == "protocol":
-        # TODO: Load context from config file/CLI options/package metadata etc.
-        # Pass metadata as context to be included in the rendered documents. Used in
-        # Jinja templates.
-        context = {
-            "title": "DOC-001 Application Test Protocol",
-            "author": "Siim Lepik",
-            "render_date": datetime.datetime.now(),
-        }
-        doxhell.renderer.render_protocol(tests, output_map, context)
-        doxhell.console.print_result_good(f"Wrote {', '.join(output_map.values())}")
+    # Pass metadata as context to be included in the rendered documents. Used in Jinja
+    # templates.
+    # TODO: Load context from YAML/config file/CLI options/package metadata etc.
+    title = {
+        OutputType.REQUIREMENTS: "DOC-001 Application Requirements Specification",
+        OutputType.PROTOCOL: "DOC-003 Application Test Protocol",
+    }[target]
+    context = {
+        "title": title,
+        "author": "Siim Lepik",
+        "requirements": requirements,
+        "tests": tests,
+    }
+    doxhell.renderer.render(target, output_map, context)
+    doxhell.console.print_result_good(f"Wrote {', '.join(output_map.values())}")
 
 
 def _main():
