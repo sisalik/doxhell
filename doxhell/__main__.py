@@ -9,6 +9,7 @@ import doxhell.loaders
 import doxhell.renderer
 import doxhell.reviewer
 from doxhell.renderer import OutputFormat, OutputType
+from doxhell.utils import PathlibPath
 
 
 class StandardCommand(click.Command):
@@ -30,7 +31,7 @@ class StandardCommand(click.Command):
                 click.Option(
                     ("--test-dir", "test_dirs"),
                     default=(".",),
-                    type=click.Path(exists=True, file_okay=False, dir_okay=True),
+                    type=PathlibPath(exists=True, file_okay=False, dir_okay=True),
                     multiple=True,
                     help="The directory containing the automated tests. Can be passed "
                     "multiple times to analyse more than one directory.",
@@ -38,7 +39,7 @@ class StandardCommand(click.Command):
                 click.Option(
                     ("--docs-dir", "docs_dirs"),
                     default=(".",),
-                    type=click.Path(exists=True, file_okay=False, dir_okay=True),
+                    type=PathlibPath(exists=True, file_okay=False, dir_okay=True),
                     multiple=True,
                     help="The directory containing the documentation files. Can be "
                     "passed multiple times to analyse more than one directory.",
@@ -84,7 +85,7 @@ def review(
     "-o",
     "--output",
     "output_files",
-    type=click.Path(),
+    type=PathlibPath(),
     multiple=True,
     help="The output file path. Defaults to <target>.<format> (e.g. 'protocol.pdf'). "
     "Can also be passed multiple times, matching each --format option.",
@@ -126,7 +127,8 @@ def render(
     }[target]
     context = {"document": document}
     doxhell.renderer.render(target, output_map, context)
-    doxhell.console.print_result_good(f"Wrote {', '.join(output_map.values())}")
+    output_files_str = ", ".join(str(f) for f in output_map.values())
+    doxhell.console.print_result_good(f"Wrote {output_files_str}")
 
 
 def _main():

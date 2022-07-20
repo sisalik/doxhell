@@ -141,10 +141,7 @@ def _load_all_requirements_docs(
 ) -> Iterator[RequirementsDoc]:
     """Load all requirements documents from the given paths."""
     for docs_root_dir in set(docs_root_dirs):  # Ignore duplicate directories
-        if isinstance(docs_root_dir, str):
-            docs_root_dir = Path(docs_root_dir)
         logger.info("Looking for requirements in {}", docs_root_dir)
-
         for item in docs_root_dir.rglob("requirements.y*ml"):
             logger.debug("Found requirements file: {}", item)
             yield _load_requirements_document(item)
@@ -153,10 +150,7 @@ def _load_all_requirements_docs(
 def _load_all_manual_test_docs(docs_root_dirs: Iterable[Path]) -> Iterator[TestsDoc]:
     """Load all manual test protocols from the given paths."""
     for docs_root_dir in set(docs_root_dirs):  # Ignore duplicate directories
-        if isinstance(docs_root_dir, str):
-            docs_root_dir = Path(docs_root_dir)
         logger.info("Looking for manual tests in {}", docs_root_dir)
-
         for item in docs_root_dir.rglob("tests.y*ml"):
             logger.debug("Found test protocol file: {}", item)
             yield _load_test_protocol(item)
@@ -209,11 +203,8 @@ def _load_test_protocol(file_path: Path) -> TestsDoc:
     return tests_doc
 
 
-def _find_test_files(path: str | Path) -> Iterator[Path]:
+def _find_test_files(path: Path) -> Iterator[Path]:
     """Find all automated test files in the given path."""
-    if isinstance(path, str):
-        path = Path(path)
-
     for item in path.iterdir():
         # Skip hidden files/directories
         if item.name.startswith("."):
