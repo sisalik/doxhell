@@ -8,7 +8,7 @@ from types import ModuleType
 
 import yaml
 from loguru import logger
-from pydantic import BaseModel, ValidationError, parse_obj_as, validator
+from pydantic import BaseModel, ValidationError, validator
 
 from doxhell.decorators import VerificationTest
 
@@ -76,86 +76,137 @@ class Test(BaseModel):
         return f"{self.file_path}::{self.id}"
 
 
-def load_requirements(docs_root_dirs: Iterable[Path | str]) -> Iterator[Requirement]:
+class RequirementsDoc(BaseModel):
+    """A requirements specification document."""
+
+    title: str
+    author: str
+    file_path: Path
+    requirements: list[Requirement]
+
+
+class TestsDoc(BaseModel):
+    """A manual test protocol document."""
+
+    title: str
+    author: str
+    file_path: Path
+    tests: list[Test]
+
+
+class TestSuite(BaseModel):
+    """A collection of automated and manual tests."""
+
+    manual_tests_doc: TestsDoc | None
+    automated_tests: list[Test]
+
+    @property
+    def all_tests(self) -> Iterator[Test]:
+        """Yield all tests."""
+        if self.manual_tests_doc:
+            yield from self.manual_tests_doc.tests
+        if self.automated_tests:
+            yield from self.automated_tests
+
+
+def load_requirements(docs_root_dirs: Iterable[Path]) -> RequirementsDoc:
     """Load all requirements from the given paths."""
-    # Ignore duplicate directories
-    for docs_root_dir in set(docs_root_dirs):
-        yield from _load_requirements_single(docs_root_dir)
+    requirements_docs = list(_load_all_requirements_docs(docs_root_dirs))
+    if not requirements_docs:
+        raise ValueError(f"No requirements found in directories {docs_root_dirs}")
+    elif len(requirements_docs) > 1:
+        file_paths = "; ".join(str(r.file_path) for r in requirements_docs)
+        raise ValueError(f"Multiple requirements found: {file_paths}")
+    return requirements_docs[0]
 
 
 def load_tests(
-    docs_root_dirs: Iterable[Path | str], test_root_dirs: Iterable[Path | str]
-) -> Iterator[Test]:
+    docs_root_dirs: Iterable[Path], test_root_dirs: Iterable[Path]
+) -> TestSuite:
     """Load all tests from the given paths."""
-    # Ignore duplicate directories
-    for docs_root_dir in set(docs_root_dirs):
-        yield from _load_manual_tests_single(docs_root_dir)
-    for test_root_dir in set(test_root_dirs):
-        yield from _load_automated_tests_single(test_root_dir)
+    manual_test_docs = list(_load_all_manual_test_docs(docs_root_dirs))
+    if len(manual_test_docs) > 1:
+        file_paths = "; ".join(str(r.file_path) for r in manual_test_docs)
+        raise ValueError(f"Multiple manual test protocols found: {file_paths}")
+
+    automated_tests = list(_load_all_automated_tests(test_root_dirs))
+    return TestSuite(
+        manual_tests_doc=manual_test_docs[0] if manual_test_docs else None,
+        automated_tests=automated_tests,
+    )
 
 
-def _load_requirements_single(docs_root_dir: Path | str = ".") -> Iterator[Requirement]:
-    """Load all requirements from the given path."""
-    if isinstance(docs_root_dir, str):
-        docs_root_dir = Path(docs_root_dir)
-    logger.info("Looking for requirements in {}", docs_root_dir)
+def _load_all_requirements_docs(
+    docs_root_dirs: Iterable[Path],
+) -> Iterator[RequirementsDoc]:
+    """Load all requirements documents from the given paths."""
+    for docs_root_dir in set(docs_root_dirs):  # Ignore duplicate directories
+        if isinstance(docs_root_dir, str):
+            docs_root_dir = Path(docs_root_dir)
+        logger.info("Looking for requirements in {}", docs_root_dir)
 
-    for item in docs_root_dir.rglob("*.y*ml"):
-        if item.stem == "requirements":
+        for item in docs_root_dir.rglob("requirements.y*ml"):
             logger.debug("Found requirements file: {}", item)
-            yield from _load_requirements_from_file(item)
+            yield _load_requirements_document(item)
 
 
-def _load_manual_tests_single(docs_root_dir: Path | str = ".") -> Iterator[Test]:
-    """Load all manual tests from the given path."""
-    if isinstance(docs_root_dir, str):
-        docs_root_dir = Path(docs_root_dir)
-    logger.info("Looking for manual tests in {}", docs_root_dir)
+def _load_all_manual_test_docs(docs_root_dirs: Iterable[Path]) -> Iterator[TestsDoc]:
+    """Load all manual test protocols from the given paths."""
+    for docs_root_dir in set(docs_root_dirs):  # Ignore duplicate directories
+        if isinstance(docs_root_dir, str):
+            docs_root_dir = Path(docs_root_dir)
+        logger.info("Looking for manual tests in {}", docs_root_dir)
 
-    for item in docs_root_dir.rglob("*.y*ml"):
-        if item.stem == "tests":
-            logger.debug("Found tests file: {}", item)
-            yield from _load_tests_from_file(item)
+        for item in docs_root_dir.rglob("tests.y*ml"):
+            logger.debug("Found test protocol file: {}", item)
+            yield _load_test_protocol(item)
 
 
-def _load_automated_tests_single(test_root_dir: Path | str = ".") -> Iterator[Test]:
-    """Load all automated tests from the given path."""
-    logger.info("Looking for tests in {}", test_root_dir)
-    test_files = _find_test_files(test_root_dir)
-    for test_file in test_files:
-        for test_function in _find_test_functions(test_file):
-            # Check if the test function has been decorated with @verifies
-            if isinstance(test_function, VerificationTest):
-                test = Test(
+def _load_all_automated_tests(test_root_dirs: Iterable[Path]) -> Iterator[Test]:
+    """Load all automated tests from the given paths."""
+    for test_root_dir in set(test_root_dirs):  # Ignore duplicate directories
+        logger.info("Looking for tests in {}", test_root_dir)
+
+        for test_file in _find_test_files(test_root_dir):
+            for test_function in _find_test_functions(test_file):
+                # Check if the test function has been decorated with @verifies
+                if not isinstance(test_function, VerificationTest):
+                    continue
+                yield Test(
                     id=test_function.__name__,
                     description=str(test_function.__doc__),
                     verifies=test_function.requirement_ids,
                     automated=True,
                     file_path=test_file,
                 )
-                yield test
 
 
-def _load_requirements_from_file(file_path: Path) -> Iterator[Requirement]:
-    """Load all requirements from the given YAML file."""
+def _load_requirements_document(file_path: Path) -> RequirementsDoc:
+    """Load the requirements specification from the given YAML file."""
     with open(file_path) as file:
         yaml_content = file.read()
     data = yaml.safe_load(yaml_content)
     try:
-        yield from parse_obj_as(list[Requirement], data)
+        return RequirementsDoc(file_path=file_path, **data)
     except ValidationError:
         logger.error("Error parsing requirements file: {}", file_path)
         raise
 
 
-def _load_tests_from_file(file_path: Path) -> Iterator[Test]:
-    """Load all tests from the given YAML file."""
+def _load_test_protocol(file_path: Path) -> TestsDoc:
+    """Load the test protocol from the given YAML file."""
     with open(file_path) as file:
         yaml_content = file.read()
-    for member in yaml.safe_load(yaml_content):
-        test = Test(**member)
+    data = yaml.safe_load(yaml_content)
+    try:
+        tests_doc = TestsDoc(file_path=file_path, **data)
+    except ValidationError:
+        logger.error("Error parsing test protocol file: {}", file_path)
+        raise
+    # Populate file_path for each Test
+    for test in tests_doc.tests:
         test.file_path = file_path
-        yield test
+    return tests_doc
 
 
 def _find_test_files(path: str | Path) -> Iterator[Path]:

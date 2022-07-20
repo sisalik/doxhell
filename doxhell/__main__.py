@@ -54,7 +54,7 @@ def cli():
 
 @cli.command(cls=StandardCommand)
 def review(
-    verbosity: int, test_dirs: tuple[str, ...], docs_dirs: tuple[str, ...]
+    verbosity: int, test_dirs: tuple[Path, ...], docs_dirs: tuple[Path, ...]
 ) -> None:
     """Validate requirements and tests; check coverage."""
     _setup_logging(verbosity)
@@ -102,11 +102,11 @@ def render(
     output_files: tuple[str, ...],
     force_overwrite: bool,
     verbosity: int,
-    test_dirs: tuple[str, ...],
-    docs_dirs: tuple[str, ...],
+    test_dirs: tuple[Path, ...],
+    docs_dirs: tuple[Path, ...],
 ) -> None:
     """Produce PDF output documents from source files."""
-    if target == OutputType.COVERAGE:
+    if target not in [OutputType.REQUIREMENTS, OutputType.PROTOCOL]:
         raise NotImplementedError(f"Rendering {target} is not yet implemented")
     output_map = _map_output_formats(target, formats, output_files, force_overwrite)
 
@@ -119,17 +119,12 @@ def render(
 
     # Pass metadata as context to be included in the rendered documents. Used in Jinja
     # templates.
-    # TODO: Load context from YAML/config file/CLI options/package metadata etc.
-    title = {
-        OutputType.REQUIREMENTS: "DOC-001 Application Requirements Specification",
-        OutputType.PROTOCOL: "DOC-003 Application Test Protocol",
+    # TODO: Load extra context from config file/CLI options/package metadata etc.
+    document = {
+        OutputType.REQUIREMENTS: requirements,
+        OutputType.PROTOCOL: tests.manual_tests_doc,
     }[target]
-    context = {
-        "title": title,
-        "author": "Siim Lepik",
-        "requirements": requirements,
-        "tests": tests,
-    }
+    context = {"document": document}
     doxhell.renderer.render(target, output_map, context)
     doxhell.console.print_result_good(f"Wrote {', '.join(output_map.values())}")
 

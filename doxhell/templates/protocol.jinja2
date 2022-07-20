@@ -2,12 +2,12 @@
 <html lang="en">
     <head>
         <meta charset="utf-8" />
-        <title>{{ title }}</title>
+        <title>{{ document.title }}</title>
         <style>{% include 'protocol.css' %}</style>
     </head>
     <body>
         <div id="test-pages">
-            {% for test in tests if not test.automated %}
+            {% for test in document.tests %}
                 <h1 class="test-id">{{ test.full_name }}</h1>
                 <p class="test-description">{{ test.description }}</p>
                 <p class="section-title">Test conditions</p>

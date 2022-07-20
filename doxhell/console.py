@@ -4,17 +4,17 @@ from collections.abc import Iterable
 import rich
 import rich.table
 
-from doxhell.loaders import Requirement
+from doxhell.loaders import RequirementsDoc
 from doxhell.reviewer import Problem, Severity
 
 
-def print_coverage_summary(requirements: Iterable[Requirement]) -> None:
+def print_coverage_summary(requirements_spec: RequirementsDoc) -> None:
     """Print a summary of the requirements coverage."""
     table = rich.table.Table(title="Coverage summary", title_justify="left")
     table.add_column("Requirement", justify="right")
     table.add_column("Tests")
     table.add_column("Type")
-    for requirement in requirements:
+    for requirement in requirements_spec.requirements:
         if requirement.tests:
             colour_str = "[green]"
             tests_str = colour_str + "\n".join(

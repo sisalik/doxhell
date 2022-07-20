@@ -2,11 +2,11 @@
 <html lang="en">
     <head>
         <meta charset="utf-8" />
-        <title>{{ title }}</title>
+        <title>{{ document.title }}</title>
         <style>{% include 'requirements.css' %}</style>
     </head>
     <body>
-        {% for requirement in requirements %}
+        {% for requirement in document.requirements %}
             <div class="requirement{% if requirement.obsolete %} obsolete{% endif %}">
                 <div class="requirement-title">
                     <h3 class="requirement-id">{{ requirement.id }}</h3>
