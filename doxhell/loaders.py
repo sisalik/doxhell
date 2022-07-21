@@ -76,13 +76,31 @@ class Test(BaseModel):
         return f"{self.file_path}::{self.id}"
 
 
+class Section(BaseModel):
+    """A section in a document."""
+
+    title: str
+    items: list[Requirement]
+
+
 class RequirementsDoc(BaseModel):
     """A requirements specification document."""
 
     title: str
     author: str
     file_path: Path
-    requirements: list[Requirement]
+    # When parsing documents, support a flat list of requirements or a list of sections,
+    # each containing a list of requirements. In the former case, they will be grouped
+    # under a default section during loading.
+    body: list[Requirement] | list[Section]
+
+    @property
+    def requirements(self) -> Iterator[Requirement]:
+        """Yield all requirements."""
+        for section in self.body:
+            # By this point, a flat list of requirements must be grouped under a section
+            assert isinstance(section, Section), "body must be a list of sections"
+            yield from section.items
 
 
 class TestsDoc(BaseModel):
@@ -181,10 +199,17 @@ def _load_requirements_document(file_path: Path) -> RequirementsDoc:
         yaml_content = file.read()
     data = yaml.safe_load(yaml_content)
     try:
-        return RequirementsDoc(file_path=file_path, **data)
+        requirements_doc = RequirementsDoc(file_path=file_path, **data)
     except ValidationError:
         logger.error("Error parsing requirements file: {}", file_path)
         raise
+    # If the document has no sections and is a flat list of requirements, create
+    # a default section to group all requirements
+    if isinstance(requirements_doc.body[0], Requirement):
+        requirements_doc.body = [
+            Section(title="Requirements", items=requirements_doc.body)
+        ]
+    return requirements_doc
 
 
 def _load_test_protocol(file_path: Path) -> TestsDoc:
