@@ -26,6 +26,13 @@ body {
     margin: 10px 0 0;
 }
 
+/* Set these explicitly, since text-decoration doesn't propagate for inline-block
+elements. */
+.requirement.obsolete .requirement-id,
+.requirement.obsolete .parent-id {
+    text-decoration: line-through;
+}
+
 .parent-id {
     float: right;
     font-weight: bold;
@@ -34,8 +41,8 @@ body {
 .obsolete-reason {
     color: blueviolet;
     font-weight: bold;
-    display: inline-block;
     /* Clear text-decoration */
+    display: inline-block;
     margin-bottom: 0;
 }
 
