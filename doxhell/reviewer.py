@@ -2,11 +2,20 @@ import dataclasses
 import enum
 import itertools
 from pathlib import Path
+from typing import Iterator
 
 from loguru import logger
 
 import doxhell.loaders
-from doxhell.loaders import RequirementsDoc, TestSuite
+from doxhell.loaders import Requirement, RequirementsDoc, Test, TestSuite
+
+
+class ProblemCode(enum.Enum):
+    """Code for a particular problem type."""
+
+    DH001 = 1  # Requirement has no tests
+    DH002 = 2  # Requirement is marked obsolete without a reason given
+    DH003 = 3  # Test references a non-existent requirement
 
 
 @dataclasses.dataclass
@@ -14,18 +23,10 @@ class Problem:
     """A problem found in the documentation."""
 
     description: str
-    severity: "Severity"
+    code: ProblemCode
 
     def __str__(self):
         return self.description
-
-
-class Severity(str, enum.Enum):
-    """The severity of a problem."""
-
-    HIGH = "HIGH"
-    MEDIUM = "MED"
-    LOW = "LOW"
 
 
 def review(
@@ -36,7 +37,9 @@ def review(
     tests = doxhell.loaders.load_tests(docs_dirs, test_dirs)
 
     _map_coverage(requirements, tests)
-    problems = _check_coverage(requirements) + _check_undefined_requirements(tests)
+    problems = list(
+        itertools.chain(_review_requirements(requirements), _review_tests(tests))
+    )
     return requirements, tests, problems
 
 
@@ -50,27 +53,47 @@ def _map_coverage(requirement_spec: RequirementsDoc, test_suite: TestSuite) -> N
             test.requirements.append(requirement)
 
 
-def _check_coverage(requirement_spec: RequirementsDoc) -> list[Problem]:
-    """Check for requirements without tests."""
-    problems = []
+def _review_requirements(requirement_spec: RequirementsDoc) -> Iterator[Problem]:
+    """Review requirements for various problems."""
     for requirement in requirement_spec.requirements:
-        if not requirement.tests:
-            problem = Problem(f"{requirement.id} has no tests", Severity.HIGH)
-            problems.append(problem)
-            logger.debug(problem)
-    return problems
+        yield from itertools.chain(
+            _check_coverage(requirement),
+            _check_missing_obsolete_reason(requirement),
+        )
 
 
-def _check_undefined_requirements(test_suite: TestSuite) -> list[Problem]:
-    """Check for tests that reference non-existent requirements."""
-    problems = []
+def _review_tests(test_suite: TestSuite) -> Iterator[Problem]:
+    """Review tests for various problems."""
     for test in test_suite.all_tests:
-        valid_requirement_ids = {req.id for req in test.requirements}
-        for req_id in set(test.verifies) - valid_requirement_ids:
-            problem = Problem(
-                f"{test.id} references non-existent requirement {req_id}",
-                Severity.MEDIUM,
-            )
-            problems.append(problem)
-            logger.debug(problem)
-    return problems
+        yield from _check_undefined_requirements(test)
+
+
+def _check_coverage(requirement: Requirement) -> Iterator[Problem]:
+    """Check for requirements without tests."""
+    if not requirement.tests and not requirement.obsolete:
+        problem = Problem(f"{requirement.id} has no tests", ProblemCode.DH001)
+        logger.debug(problem)
+        yield problem
+
+
+def _check_missing_obsolete_reason(requirement: Requirement) -> Iterator[Problem]:
+    """Check for requirements made obsolete without a reason."""
+    if requirement.obsolete and not requirement.obsolete_reason:
+        problem = Problem(
+            f"{requirement.id} is marked obsolete without a reason given",
+            ProblemCode.DH002,
+        )
+        logger.debug(problem)
+        yield problem
+
+
+def _check_undefined_requirements(test: Test) -> Iterator[Problem]:
+    """Check for tests that reference non-existent requirements."""
+    valid_requirement_ids = {req.id for req in test.requirements}
+    for req_id in set(test.verifies) - valid_requirement_ids:
+        problem = Problem(
+            f"{test.id} references non-existent requirement {req_id}",
+            ProblemCode.DH003,
+        )
+        logger.debug(problem)
+        yield problem

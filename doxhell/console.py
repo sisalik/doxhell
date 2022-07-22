@@ -5,7 +5,7 @@ import rich
 import rich.table
 
 from doxhell.loaders import RequirementsDoc
-from doxhell.reviewer import Problem, Severity
+from doxhell.reviewer import Problem
 
 
 def print_coverage_summary(requirements_spec: RequirementsDoc) -> None:
@@ -40,19 +40,13 @@ def print_problems(problems: Iterable[Problem]) -> None:
         return
 
     table = rich.table.Table(title="Problems", title_justify="left")
-    table.add_column("Severity", justify="right")
+    table.add_column("Code")
     table.add_column("Description")
-    # Map problem severity to colour
-    row_styles = {
-        Severity.HIGH: "white on red",
-        Severity.MEDIUM: "red",
-        Severity.LOW: "yellow",
-    }
     for problem in problems:
         table.add_row(
-            problem.severity,
+            problem.code.name,
             problem.description,
-            style=row_styles[problem.severity],
+            style=_problem_code_to_colour(problem.code.value),
         )
     print()
     rich.print(table)
@@ -66,3 +60,10 @@ def print_result_bad(message: str) -> None:
 def print_result_good(message: str) -> None:
     """Print a success message to stdout."""
     rich.print(f"\n[green]{message}[/green]")
+
+
+def _problem_code_to_colour(problem_code: int) -> str:
+    """Return a Rich colour string for a given problem code."""
+    # Use standard colours from 1 to 15, since 0 is black
+    colour_idx = (problem_code - 1) % 15 + 1
+    return f"color({colour_idx})"

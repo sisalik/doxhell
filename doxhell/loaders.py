@@ -25,13 +25,6 @@ class Requirement(BaseModel):
     # List of tests populated during cross check with tests
     tests: list["Test"] = []
 
-    @validator("obsolete_reason", always=True)
-    def obsolete_reason_must_be_given(cls, v, values):
-        """Validate that obsolete_reason is given if obsolete is True."""
-        if values["obsolete"] and not v:
-            raise ValueError("obsolete_reason is required if obsolete is True")
-        return v
-
 
 class EvidenceType(str, enum.Enum):
     """The type of evidence used to prove that a manual test passed."""
