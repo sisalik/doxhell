@@ -10,7 +10,7 @@ import doxhell.loaders
 from doxhell.loaders import Requirement, RequirementsDoc, Test, TestSuite
 
 
-class ProblemCode(enum.Enum):
+class ProblemCode(int, enum.Enum):
     """Code for a particular problem type."""
 
     DH001 = 1  # Requirement has no tests
@@ -30,17 +30,18 @@ class Problem:
 
 
 def review(
-    test_dirs: tuple[Path, ...], docs_dirs: tuple[Path, ...]
+    test_dirs: tuple[Path, ...],
+    docs_dirs: tuple[Path, ...],
+    ignores: tuple[ProblemCode, ...],
 ) -> tuple[RequirementsDoc, TestSuite, list[Problem]]:
     """Validate requirements and tests; check coverage."""
     requirements = doxhell.loaders.load_requirements(docs_dirs)
     tests = doxhell.loaders.load_tests(docs_dirs, test_dirs)
 
     _map_coverage(requirements, tests)
-    problems = list(
-        itertools.chain(_review_requirements(requirements), _review_tests(tests))
-    )
-    return requirements, tests, problems
+    problems = itertools.chain(_review_requirements(requirements), _review_tests(tests))
+    problems_not_ignored = filter(lambda p: p.code not in ignores, problems)
+    return requirements, tests, list(problems_not_ignored)
 
 
 def _map_coverage(requirement_spec: RequirementsDoc, test_suite: TestSuite) -> None:

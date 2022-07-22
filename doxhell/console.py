@@ -42,7 +42,7 @@ def print_problems(problems: Iterable[Problem]) -> None:
     table = rich.table.Table(title="Problems", title_justify="left")
     table.add_column("Code")
     table.add_column("Description")
-    for problem in problems:
+    for problem in sorted(problems, key=lambda p: p.code):
         table.add_row(
             problem.code.name,
             problem.description,

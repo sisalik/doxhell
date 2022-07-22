@@ -9,7 +9,32 @@ import doxhell.loaders
 import doxhell.renderer
 import doxhell.reviewer
 from doxhell.renderer import OutputFormat, OutputType
-from doxhell.utils import PathlibPath
+from doxhell.reviewer import ProblemCode
+
+
+class PathlibPath(click.Path):
+    """A Click parameter type that converts into a pathlib.Path.
+
+    Based on solution by jeremyh at
+    https://github.com/pallets/click/issues/405#issuecomment-470812067
+    """
+
+    def convert(self, value, param, ctx):
+        """Convert a string to a pathlib.Path."""
+        return Path(super().convert(value, param, ctx))
+
+
+class ProblemCodeType(click.ParamType):
+    """A Click parameter type for problem codes."""
+
+    name = "problem_code"
+
+    def convert(self, value, param, ctx):
+        """Convert a string to a problem code."""
+        try:
+            return ProblemCode[value]
+        except KeyError:
+            self.fail(f"{value} is not a valid problem code", param, ctx)
 
 
 class StandardCommand(click.Command):
@@ -44,6 +69,14 @@ class StandardCommand(click.Command):
                     help="The directory containing the documentation files. Can be "
                     "passed multiple times to analyse more than one directory.",
                 ),
+                click.Option(
+                    ("-i", "--ignore", "ignores"),
+                    default=(),
+                    type=ProblemCodeType(),
+                    multiple=True,
+                    help="The problem codes to ignore. Can be passed multiple times to "
+                    "ignore more than one problem.",
+                ),
             ]
         )
 
@@ -55,11 +88,14 @@ def cli():
 
 @cli.command(cls=StandardCommand)
 def review(
-    verbosity: int, test_dirs: tuple[Path, ...], docs_dirs: tuple[Path, ...]
+    verbosity: int,
+    test_dirs: tuple[Path, ...],
+    docs_dirs: tuple[Path, ...],
+    ignores: tuple[ProblemCode, ...],
 ) -> None:
     """Validate requirements and tests; check coverage."""
     _setup_logging(verbosity)
-    requirements, _, problems = doxhell.reviewer.review(test_dirs, docs_dirs)
+    requirements, _, problems = doxhell.reviewer.review(test_dirs, docs_dirs, ignores)
     doxhell.console.print_coverage_summary(requirements)
     doxhell.console.print_problems(problems)
     if problems:
@@ -105,6 +141,7 @@ def render(
     verbosity: int,
     test_dirs: tuple[Path, ...],
     docs_dirs: tuple[Path, ...],
+    ignores: tuple[ProblemCode, ...],
 ) -> None:
     """Produce PDF output documents from source files."""
     if target not in [OutputType.REQUIREMENTS, OutputType.PROTOCOL]:
@@ -112,11 +149,13 @@ def render(
     output_map = _map_output_formats(target, formats, output_files, force_overwrite)
 
     _setup_logging(verbosity)
-    requirements, tests, problems = doxhell.reviewer.review(test_dirs, docs_dirs)
+    requirements, tests, problems = doxhell.reviewer.review(
+        test_dirs, docs_dirs, ignores
+    )
     if problems:
         doxhell.console.print_problems(problems)
         doxhell.console.print_result_bad("Documentation is invalid; can't continue 😢")
-        sys.exit(1)
+        sys.exit(len(problems))
 
     # Pass metadata as context to be included in the rendered documents. Used in Jinja
     # templates.
