@@ -1,7 +1,7 @@
 import pytest
 from doxhell.decorators import verifies
 
-from example_project.calculator import add_numbers
+from simple_project.calculator import add_numbers
 
 
 @verifies("REQ-001")

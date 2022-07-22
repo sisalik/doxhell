@@ -1,6 +1,6 @@
 title: DOC-001 Application Requirements Specification
 author: John Doe
-requirements:
+body:
   - id: REQ-001
     specification: The application shall have a GUI
     rationale: So that the user can operate it

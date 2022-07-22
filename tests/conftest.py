@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 
-@pytest.fixture(params=[Path("examples") / "example-project"])
+@pytest.fixture()
 def _use_directory(request):
     """Fixture for (temporarily) changing the current working directory.
 
@@ -13,7 +13,7 @@ def _use_directory(request):
     ```
     @pytest.mark.parametrize(
         "_use_directory",
-        [Path("examples") / "example-project"],
+        [Path("examples") / "simple-project"],
         indirect=True,
     )
     ```
