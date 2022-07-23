@@ -4,7 +4,7 @@ import rich
 import rich.console
 import rich.table
 
-from doxhell.loaders import CoverageDoc
+from doxhell.models import CoverageDoc
 from doxhell.reviewer import Problem
 
 

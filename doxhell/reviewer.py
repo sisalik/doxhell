@@ -8,7 +8,7 @@ from typing import Iterator
 from loguru import logger
 
 import doxhell.loaders
-from doxhell.loaders import CoverageDoc, Requirement, RequirementsDoc, TestSuite
+from doxhell.models import CoverageDoc, Requirement, RequirementsDoc, TestSuite
 
 
 class ProblemCode(int, enum.Enum):

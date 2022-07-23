@@ -13,7 +13,7 @@ from doxhell.console import (
     print_result_bad,
     print_result_good,
 )
-from doxhell.loaders import CoverageDoc, RequirementsDoc, TestsDoc
+from doxhell.models import CoverageDoc, RequirementsDoc, TestsDoc
 from doxhell.renderer import OutputFormat, OutputType
 from doxhell.reviewer import ProblemCode
 
