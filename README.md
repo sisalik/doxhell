@@ -13,6 +13,8 @@
 doxhell allows you to automate documentation tasks for projects with requirements
 specifications and manual tests.
 
+<img src="assets/demo.gif" width="600" alt="Demo"/>
+
 ## Getting started
 
 These instructions will get you a copy of the project up and running on your local
