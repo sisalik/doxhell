@@ -1,5 +1,4 @@
-title: DOC-003 Application Test Protocol
-author: Jane Doe
+title: Test Protocol
 tests:
   - id: gui
     description: Test the GUI of the application

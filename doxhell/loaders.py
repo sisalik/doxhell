@@ -76,12 +76,32 @@ class Section(BaseModel):
     items: list[Requirement]
 
 
-class RequirementsDoc(BaseModel):
-    """A requirements specification document."""
+class BaseDocument(BaseModel):
+    """A base class for a document."""
 
     title: str
-    author: str
+    number: str | None
+    revision: str | None
+    author: str | None
     file_path: Path
+
+    @property
+    def full_title(self) -> str:
+        """Return the full name of the document."""
+        title = ""
+        if self.number:
+            title += self.number
+        if self.revision:
+            title += self.revision
+        if self.number or self.revision:
+            title += " "
+        title += self.title
+        return title
+
+
+class RequirementsDoc(BaseDocument):
+    """A requirements specification document."""
+
     # When parsing documents, support a flat list of requirements or a list of sections,
     # each containing a list of requirements. In the former case, they will be grouped
     # under a default section during loading.
@@ -96,12 +116,9 @@ class RequirementsDoc(BaseModel):
             yield from section.items
 
 
-class TestsDoc(BaseModel):
+class TestsDoc(BaseDocument):
     """A manual test protocol document."""
 
-    title: str
-    author: str
-    file_path: Path
     tests: list[Test]
 
 

@@ -1,5 +1,4 @@
-title: DOC-001 Application Requirements Specification
-author: John Doe
+title: Requirements Specification
 body:
   - id: REQ-001
     specification: The application shall have a GUI

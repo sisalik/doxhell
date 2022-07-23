@@ -131,7 +131,7 @@ def _map_output_formats(
     """Validate and map output formats to output files."""
     # If no output files are specified, use the document title as the file name
     if not output_files:
-        output_files = tuple(f"{document.title}.{format}" for format in formats)
+        output_files = tuple(f"{document.full_title}.{format}" for format in formats)
     # Check if any output files already exist
     if not force_overwrite:
         for output_file in output_files:

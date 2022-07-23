@@ -1,4 +1,6 @@
-title: DOC-003 Application Test Protocol
+title: Application Test Protocol
+number: DOC-003
+revision: v1.0
 author: Jane Doe
 tests:
   - id: gui

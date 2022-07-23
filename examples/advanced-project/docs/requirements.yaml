@@ -1,4 +1,6 @@
-title: DOC-001 Application Requirements Specification
+title: Application Requirements Specification
+number: DOC-001
+revision: v2.0
 author: John Doe
 body:
   - title: User interface
