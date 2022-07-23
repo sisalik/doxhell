@@ -6,6 +6,9 @@ import pytest
 import doxhell.__main__
 from doxhell.renderer import OutputType
 
+SIMPLE_EXAMPLE_DIR = Path("examples") / "simple-project"
+ADVANCED_EXAMPLE_DIR = Path("examples") / "advanced-project"
+
 
 def test_smoke(cli_runner):
     """Test if the tool can run at all."""
@@ -17,7 +20,7 @@ def test_smoke(cli_runner):
 @pytest.mark.usefixtures("_use_directory")
 @pytest.mark.parametrize(
     "_use_directory",
-    [Path("examples") / "simple-project", Path("examples") / "advanced-project"],
+    [SIMPLE_EXAMPLE_DIR, ADVANCED_EXAMPLE_DIR],
     indirect=True,
 )
 def test_example_project_review(cli_runner):
@@ -26,20 +29,16 @@ def test_example_project_review(cli_runner):
     assert result.exit_code == 0
 
 
-# Parametrize the project directory
+# Parametrize the project directory and output type
 @pytest.mark.usefixtures("_use_directory")
 @pytest.mark.parametrize(
-    "_use_directory",
-    [Path("examples") / "simple-project", Path("examples") / "advanced-project"],
-    indirect=True,
-)
-# Parametrize the output document type
-@pytest.mark.parametrize(
-    "output_type",
+    ("_use_directory", "output_type"),
     [
-        OutputType.REQUIREMENTS,
-        OutputType.PROTOCOL,
+        (SIMPLE_EXAMPLE_DIR, OutputType.REQUIREMENTS),
+        (ADVANCED_EXAMPLE_DIR, OutputType.REQUIREMENTS),
+        (ADVANCED_EXAMPLE_DIR, OutputType.PROTOCOL),
     ],
+    indirect=["_use_directory"],
 )
 def test_example_project_render(cli_runner, temporary_file, output_type):
     """Test if the tool can render the output docs for the example projects."""
