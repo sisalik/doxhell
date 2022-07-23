@@ -4,31 +4,28 @@ import rich
 import rich.console
 import rich.table
 
-from doxhell.loaders import RequirementsDoc
+from doxhell.loaders import CoverageDoc
 from doxhell.reviewer import Problem
 
 
-def print_coverage_summary(requirements_spec: RequirementsDoc) -> None:
+def print_coverage_summary(coverage_doc: CoverageDoc) -> None:
     """Print a summary of the requirements coverage."""
     table = rich.table.Table(title="Coverage summary", title_justify="left")
     table.add_column("Requirement", justify="right")
     table.add_column("Tests")
     table.add_column("Type")
-    for requirement in requirements_spec.requirements:
-        if requirement.tests:
+    for requirement, tests in coverage_doc.mapping.items():
+        if tests:
             colour_str = "[green]"
-            tests_str = colour_str + "\n".join(
-                test.full_name for test in requirement.tests
-            )
+            tests_str = colour_str + "\n".join(test.full_name for test in tests)
             type_str = "\n".join(
-                "[cyan]Auto" if test.automated else "[magenta]Manual"
-                for test in requirement.tests
+                "[cyan]Auto" if test.automated else "[magenta]Manual" for test in tests
             )
         else:
             colour_str = "[red]"
-            tests_str = colour_str + "NO TESTS"
+            tests_str = f"{colour_str}NO TESTS"
             type_str = "[red]-"
-        table.add_row(colour_str + requirement.id, tests_str, type_str)
+        table.add_row(f"{colour_str}{requirement.id}", tests_str, type_str)
 
     print()
     rich.print(table)

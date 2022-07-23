@@ -13,7 +13,7 @@ from doxhell.console import (
     print_result_bad,
     print_result_good,
 )
-from doxhell.loaders import RequirementsDoc, TestsDoc
+from doxhell.loaders import CoverageDoc, RequirementsDoc, TestsDoc
 from doxhell.renderer import OutputFormat, OutputType
 from doxhell.reviewer import ProblemCode
 
@@ -30,8 +30,8 @@ def review(
     ignores: tuple[ProblemCode, ...],
 ) -> None:
     """Validate requirements and tests; check coverage."""
-    requirements, _, problems = doxhell.reviewer.review(test_dirs, docs_dirs, ignores)
-    print_coverage_summary(requirements)
+    _, _, coverage, problems = doxhell.reviewer.review(test_dirs, docs_dirs, ignores)
+    print_coverage_summary(coverage)
     if problems:
         print_problems(problems)
         print_result_bad("Review failed 😢")
@@ -59,7 +59,7 @@ def review(
     type=PathlibPath(),
     multiple=True,
     help="The output file path. Defaults to <title>.<format> (e.g. "
-    "'Title-Loaded-From-YAML.pdf'). Can also be passed multiple times, matching each "
+    "'Title Loaded From YAML.pdf'). Can also be passed multiple times, matching each "
     "--format option.",
 )
 @click.option(
@@ -79,8 +79,6 @@ def render(
     ignores: tuple[ProblemCode, ...],
 ) -> None:
     """Produce PDF output documents from source files."""
-    if target not in [OutputType.REQUIREMENTS, OutputType.PROTOCOL]:
-        raise NotImplementedError(f"Rendering {target} is not yet implemented")
     # Check for mismatched number of formats and output files
     if len(output_files) > 0 and len(output_files) != len(formats):
         raise click.UsageError(
@@ -88,7 +86,7 @@ def render(
             f"({len(output_files)})"
         )
     # Check if documentation is valid before rendering
-    requirements, tests, problems = doxhell.reviewer.review(
+    requirements, tests, coverage, problems = doxhell.reviewer.review(
         test_dirs, docs_dirs, ignores
     )
     if problems:
@@ -99,6 +97,7 @@ def render(
     document = {
         OutputType.REQUIREMENTS: requirements,
         OutputType.PROTOCOL: tests.manual_tests_doc,
+        OutputType.COVERAGE: coverage,
     }[target]
     # It's possible to have a valid documentation set without any manual tests, but this
     # means you can't render the protocol
@@ -125,7 +124,7 @@ def _main():
 def _map_output_formats(
     formats: tuple[OutputFormat, ...],
     output_files: tuple[str, ...],
-    document: RequirementsDoc | TestsDoc,
+    document: RequirementsDoc | TestsDoc | CoverageDoc,
     force_overwrite: bool,
 ) -> dict[OutputFormat, str]:
     """Validate and map output formats to output files."""

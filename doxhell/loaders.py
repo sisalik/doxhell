@@ -13,7 +13,14 @@ from pydantic import BaseModel, ValidationError, validator
 from doxhell.tests_integration import VerificationTest
 
 
-class Requirement(BaseModel):
+class HashableBaseModel(BaseModel):
+    """Base model that can be used as a hashable key."""
+
+    def __hash__(self):
+        return hash((type(self),) + tuple(self.__dict__.values()))
+
+
+class Requirement(HashableBaseModel):
     """A requirement found in the documentation."""
 
     id: str
@@ -22,8 +29,6 @@ class Requirement(BaseModel):
     parent: str = ""
     obsolete: bool = False
     obsolete_reason: str = ""
-    # List of tests populated during cross check with tests
-    tests: list["Test"] = []
 
 
 class EvidenceType(str, enum.Enum):
@@ -51,8 +56,6 @@ class Test(BaseModel):
     description: str
     verifies: list[str]
     steps: list[TestStep] = []
-    # List of requirements populated during cross check with requirements
-    requirements: list[Requirement] = []
     automated: bool = False
     file_path: Path | None
 
@@ -116,6 +119,22 @@ class RequirementsDoc(BaseDocument):
             yield from section.items
 
 
+class CoverageDoc(BaseDocument):
+    """A test coverage document."""
+
+    # Mapping of requirements to test populated during later review, not initial parsing
+    mapping: dict[Requirement, list[Test]] = {}
+
+    def map(self, requirements: Iterable[Requirement], tests: Iterable[Test]) -> None:
+        """Map requirements to tests."""
+        tests_list = list(tests)  # If an iterator is passed, it will be consumed
+        for requirement in requirements:
+            self.mapping[requirement] = []
+            for test in tests_list:
+                if requirement.id in test.verifies:
+                    self.mapping[requirement].append(test)
+
+
 class TestsDoc(BaseDocument):
     """A manual test protocol document."""
 
@@ -138,21 +157,23 @@ class TestSuite(BaseModel):
 
 
 def load_requirements(docs_root_dirs: Iterable[Path]) -> RequirementsDoc:
-    """Load all requirements from the given paths."""
+    """Load a requirements document from the given paths."""
     requirements_docs = list(_load_all_requirements_docs(docs_root_dirs))
     if not requirements_docs:
-        raise ValueError(f"No requirements found in directories {docs_root_dirs}")
+        raise ValueError(f"No requirements docs found in directories {docs_root_dirs}")
     elif len(requirements_docs) > 1:
         file_paths = "; ".join(str(r.file_path) for r in requirements_docs)
-        raise ValueError(f"Multiple requirements found: {file_paths}")
+        raise ValueError(f"Multiple requirements docs found: {file_paths}")
     return requirements_docs[0]
 
 
 def load_tests(
     docs_root_dirs: Iterable[Path], test_root_dirs: Iterable[Path]
 ) -> TestSuite:
-    """Load all tests from the given paths."""
+    """Load all manual and automated tests from the given paths."""
     manual_test_docs = list(_load_all_manual_test_docs(docs_root_dirs))
+    # You can have a valid test suite with no manual tests, but multiple protocol files
+    # are not supported
     if len(manual_test_docs) > 1:
         file_paths = "; ".join(str(r.file_path) for r in manual_test_docs)
         raise ValueError(f"Multiple manual test protocols found: {file_paths}")
@@ -164,12 +185,23 @@ def load_tests(
     )
 
 
+def load_coverage(docs_root_dirs: Iterable[Path]) -> CoverageDoc:
+    """Load a coverage document from the given paths."""
+    coverage_docs = list(_load_all_coverage_docs(docs_root_dirs))
+    if not coverage_docs:
+        raise ValueError(f"No coverage docs found in directories {docs_root_dirs}")
+    elif len(coverage_docs) > 1:
+        file_paths = "; ".join(str(r.file_path) for r in coverage_docs)
+        raise ValueError(f"Multiple coverage docs found: {file_paths}")
+    return coverage_docs[0]
+
+
 def _load_all_requirements_docs(
     docs_root_dirs: Iterable[Path],
 ) -> Iterator[RequirementsDoc]:
     """Load all requirements documents from the given paths."""
     for docs_root_dir in set(docs_root_dirs):  # Ignore duplicate directories
-        logger.info("Looking for requirements in {}", docs_root_dir)
+        logger.info("Looking for requirements docs in {}", docs_root_dir)
         for item in docs_root_dir.rglob("requirements.y*ml"):
             logger.debug("Found requirements file: {}", item)
             yield _load_requirements_document(item)
@@ -182,6 +214,15 @@ def _load_all_manual_test_docs(docs_root_dirs: Iterable[Path]) -> Iterator[Tests
         for item in docs_root_dir.rglob("tests.y*ml"):
             logger.debug("Found test protocol file: {}", item)
             yield _load_test_protocol(item)
+
+
+def _load_all_coverage_docs(docs_root_dirs: Iterable[Path]) -> Iterator[CoverageDoc]:
+    """Load all coverage documents from the given paths."""
+    for docs_root_dir in set(docs_root_dirs):  # Ignore duplicate directories
+        logger.info("Looking for coverage docs in {}", docs_root_dir)
+        for item in docs_root_dir.rglob("coverage.y*ml"):
+            logger.debug("Found coverage file: {}", item)
+            yield _load_coverage_document(item)
 
 
 def _load_all_automated_tests(test_root_dirs: Iterable[Path]) -> Iterator[Test]:
@@ -236,6 +277,19 @@ def _load_test_protocol(file_path: Path) -> TestsDoc:
     for test in tests_doc.tests:
         test.file_path = file_path
     return tests_doc
+
+
+def _load_coverage_document(file_path: Path) -> CoverageDoc:
+    """Load the coverage document from the given YAML file."""
+    with open(file_path) as file:
+        yaml_content = file.read()
+    data = yaml.safe_load(yaml_content)
+    try:
+        coverage_doc = CoverageDoc(file_path=file_path, **data)
+    except ValidationError:
+        logger.error("Error parsing coverage file: {}", file_path)
+        raise
+    return coverage_doc
 
 
 def _find_test_files(path: Path) -> Iterator[Path]:
