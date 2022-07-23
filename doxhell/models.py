@@ -72,7 +72,7 @@ class Section(BaseModel):
 
 
 class BaseDocument(BaseModel):
-    """A base class for a document."""
+    """A base class for a document that is loaded from YAML."""
 
     title: str
     number: str | None
@@ -114,8 +114,14 @@ class RequirementsDoc(BaseDocument):
 class CoverageDoc(BaseDocument):
     """A test coverage document."""
 
-    # Mapping of requirements to test populated during later review, not initial parsing
-    mapping: dict[Requirement, list[Test]] = {}
+    # This document type does not include any unique fields
+
+
+class CoverageCollection(BaseModel):
+    """A collection of requirement-to-test mappings and the coverage document."""
+
+    mapping: dict[Requirement, list[Test]] = {}  # Mapping of requirements to tests
+    coverage_doc: CoverageDoc | None  # Not necessary if output rendering is not needed
 
     def map(self, requirements: Iterable[Requirement], tests: Iterable[Test]) -> None:
         """Map requirements to tests."""
@@ -133,11 +139,11 @@ class TestsDoc(BaseDocument):
     tests: list[Test]
 
 
-class TestSuite(BaseModel):
-    """A collection of automated and manual tests."""
+class TestCollection(BaseModel):
+    """A collection of automated and manual tests, and the associated test document."""
 
-    manual_tests_doc: TestsDoc | None
     automated_tests: list[Test]
+    manual_tests_doc: TestsDoc | None  # Not necessary if output rendering is not needed
 
     @property
     def all_tests(self) -> Iterator[Test]:

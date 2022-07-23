@@ -8,7 +8,12 @@ from typing import Iterator
 from loguru import logger
 
 import doxhell.loaders
-from doxhell.models import CoverageDoc, Requirement, RequirementsDoc, TestSuite
+from doxhell.models import (
+    CoverageCollection,
+    Requirement,
+    RequirementsDoc,
+    TestCollection,
+)
 
 
 class ProblemCode(int, enum.Enum):
@@ -36,7 +41,7 @@ def review(
     test_dirs: tuple[Path, ...],
     docs_dirs: tuple[Path, ...],
     ignores: tuple[ProblemCode, ...],
-) -> tuple[RequirementsDoc, TestSuite, CoverageDoc, list[Problem]]:
+) -> tuple[RequirementsDoc, TestCollection, CoverageCollection, list[Problem]]:
     """Validate requirements and tests; check coverage."""
     requirements = doxhell.loaders.load_requirements(docs_dirs)
     tests = doxhell.loaders.load_tests(docs_dirs, test_dirs)
@@ -62,13 +67,13 @@ def _review_requirements(requirement_spec: RequirementsDoc) -> Iterator[Problem]
     yield from _check_requirement_ids_are_unique(requirement_spec)
 
 
-def _review_tests(test_suite: TestSuite) -> Iterator[Problem]:
+def _review_tests(test_suite: TestCollection) -> Iterator[Problem]:
     """Review tests for various problems."""
     # Run check functions that operate on the entire set of tests
     yield from _check_test_ids_are_unique(test_suite)
 
 
-def _review_coverage(coverage: CoverageDoc) -> Iterator[Problem]:
+def _review_coverage(coverage: CoverageCollection) -> Iterator[Problem]:
     """Check for requirements that are not covered by any tests."""
     for requirement, tests in coverage.mapping.items():
         if not tests and not requirement.obsolete:
@@ -78,7 +83,7 @@ def _review_coverage(coverage: CoverageDoc) -> Iterator[Problem]:
 
 
 def _review_cross_references(
-    requirement_spec: RequirementsDoc, test_suite: TestSuite
+    requirement_spec: RequirementsDoc, test_suite: TestCollection
 ) -> Iterator[Problem]:
     """Check for references to non-existent requirements."""
     valid_requirement_ids = {req.id for req in requirement_spec.requirements}
@@ -120,7 +125,7 @@ def _check_requirement_ids_are_unique(
         yield problem
 
 
-def _check_test_ids_are_unique(test_suite: TestSuite) -> Iterator[Problem]:
+def _check_test_ids_are_unique(test_suite: TestCollection) -> Iterator[Problem]:
     """Check for duplicate test identifiers."""
     id_counter: Counter = Counter()
     for test in test_suite.all_tests:

@@ -97,10 +97,10 @@ def render(
     document = {
         OutputType.REQUIREMENTS: requirements,
         OutputType.PROTOCOL: tests.manual_tests_doc,
-        OutputType.COVERAGE: coverage,
+        OutputType.COVERAGE: coverage.coverage_doc,
     }[target]
-    # It's possible to have a valid documentation set without any manual tests, but this
-    # means you can't render the protocol
+    # It's possible to have a valid documentation set without any manual tests or
+    # coverage document template, but this means you can't render these documents
     if not document:
         print_result_bad(f"No source file for {target} document exists")
         sys.exit(1)

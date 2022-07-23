@@ -10,13 +10,14 @@ from loguru import logger
 from pydantic import ValidationError
 
 from doxhell.models import (
+    CoverageCollection,
     CoverageDoc,
     Requirement,
     RequirementsDoc,
     Section,
     Test,
+    TestCollection,
     TestsDoc,
-    TestSuite,
 )
 from doxhell.tests_integration import VerificationTest
 
@@ -34,7 +35,7 @@ def load_requirements(docs_root_dirs: Iterable[Path]) -> RequirementsDoc:
 
 def load_tests(
     docs_root_dirs: Iterable[Path], test_root_dirs: Iterable[Path]
-) -> TestSuite:
+) -> TestCollection:
     """Load all manual and automated tests from the given paths."""
     manual_test_docs = list(_load_all_manual_test_docs(docs_root_dirs))
     # You can have a valid test suite with no manual tests, but multiple protocol files
@@ -44,21 +45,19 @@ def load_tests(
         raise ValueError(f"Multiple manual test protocols found: {file_paths}")
 
     automated_tests = list(_load_all_automated_tests(test_root_dirs))
-    return TestSuite(
+    return TestCollection(
         manual_tests_doc=manual_test_docs[0] if manual_test_docs else None,
         automated_tests=automated_tests,
     )
 
 
-def load_coverage(docs_root_dirs: Iterable[Path]) -> CoverageDoc:
+def load_coverage(docs_root_dirs: Iterable[Path]) -> CoverageCollection:
     """Load a coverage document from the given paths."""
     coverage_docs = list(_load_all_coverage_docs(docs_root_dirs))
-    if not coverage_docs:
-        raise ValueError(f"No coverage docs found in directories {docs_root_dirs}")
-    elif len(coverage_docs) > 1:
+    if len(coverage_docs) > 1:
         file_paths = "; ".join(str(r.file_path) for r in coverage_docs)
         raise ValueError(f"Multiple coverage docs found: {file_paths}")
-    return coverage_docs[0]
+    return CoverageCollection(coverage_doc=coverage_docs[0] if coverage_docs else None)
 
 
 def _load_all_requirements_docs(
