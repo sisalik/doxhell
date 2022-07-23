@@ -37,6 +37,7 @@ def test_example_project_review(cli_runner):
         (SIMPLE_EXAMPLE_DIR, OutputType.REQUIREMENTS),
         (ADVANCED_EXAMPLE_DIR, OutputType.REQUIREMENTS),
         (ADVANCED_EXAMPLE_DIR, OutputType.PROTOCOL),
+        (ADVANCED_EXAMPLE_DIR, OutputType.COVERAGE),
     ],
     indirect=["_use_directory"],
 )

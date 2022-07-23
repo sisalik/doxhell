@@ -107,7 +107,7 @@ def render(
     # Compile metadata as context to be included in the rendered documents. Used in
     # Jinja templates.
     # TODO: Load extra context from config file/CLI options/package metadata etc.
-    context = {"document": document}
+    context = {"document": document, "coverage": coverage}
     output_map = _map_output_formats(formats, output_files, document, force_overwrite)
     doxhell.renderer.render(target, output_map, context)
     output_files_str = ", ".join(str(f) for f in output_map.values())
