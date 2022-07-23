@@ -1,7 +1,7 @@
-import sys
 from collections.abc import Iterable
 
 import rich
+import rich.console
 import rich.table
 
 from doxhell.loaders import RequirementsDoc
@@ -54,12 +54,12 @@ def print_problems(problems: Iterable[Problem]) -> None:
 
 def print_result_bad(message: str) -> None:
     """Print an error message to stderr."""
-    rich.print(f"\n[red]{message}[/red]", file=sys.stderr)
+    rich.console.Console(highlight=False).print(f"\n{message}", style="red")
 
 
 def print_result_good(message: str) -> None:
     """Print a success message to stdout."""
-    rich.print(f"\n[green]{message}[/green]")
+    rich.console.Console(highlight=False).print(f"\n{message}", style="green")
 
 
 def _problem_code_to_colour(problem_code: int) -> str:

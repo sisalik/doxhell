@@ -130,7 +130,5 @@ cython_debug/
 .vscode/
 
 # Rendered output files
-requirements.html
-requirements.pdf
-protocol.html
-protocol.pdf
+examples/**/*.pdf
+examples/**/*.html
