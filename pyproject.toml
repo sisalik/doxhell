@@ -168,6 +168,7 @@ toml-sort = "^0.20.0"
 cssbeautifier = "^1.14.4"
 djlint = "^1.7.0"
 types-toml = "^0.10.8"
+poethepoet = "^0.16.0"
 
 [tool.poetry.scripts]
 doxhell = "doxhell.__main__:_main"
