@@ -12,6 +12,7 @@ from doxhell.models import (
     CoverageCollection,
     Requirement,
     RequirementsDoc,
+    Test,
     TestCollection,
 )
 
@@ -24,6 +25,7 @@ class ProblemCode(int, enum.Enum):
     DH003 = 3  # Test references a non-existent requirement
     DH004 = 4  # Requirement has a duplicate identifier
     DH005 = 5  # Test has a duplicate identifier
+    DH006 = 6  # Test verifies an obsolete requirement
 
 
 @dataclasses.dataclass
@@ -75,11 +77,10 @@ def _review_tests(test_suite: TestCollection) -> Iterator[Problem]:
 
 def _review_coverage(coverage: CoverageCollection) -> Iterator[Problem]:
     """Check for requirements that are not covered by any tests."""
+    # Run check functions that operate on single coverage entries
     for requirement, tests in coverage.mapping.items():
-        if not tests and not requirement.obsolete:
-            problem = Problem(f"{requirement.id} has no tests", ProblemCode.DH001)
-            logger.debug(problem)
-            yield problem
+        yield from _check_requirement_not_covered(requirement, tests)
+        yield from _check_test_verifies_obsolete_requirement(requirement, tests)
 
 
 def _review_cross_references(
@@ -136,3 +137,27 @@ def _check_test_ids_are_unique(test_suite: TestCollection) -> Iterator[Problem]:
         problem = Problem(f"Test {id} is defined {count} times", ProblemCode.DH005)
         logger.debug(problem)
         yield problem
+
+
+def _check_requirement_not_covered(
+    requirement: Requirement, tests: list[Test]
+) -> Iterator[Problem]:
+    """Check for requirements that are not covered by any tests."""
+    if not tests and not requirement.obsolete:
+        problem = Problem(f"{requirement.id} has no tests", ProblemCode.DH001)
+        logger.debug(problem)
+        yield problem
+
+
+def _check_test_verifies_obsolete_requirement(
+    requirement: Requirement, tests: list[Test]
+) -> Iterator[Problem]:
+    """Check for tests that verify obsolete requirements."""
+    if requirement.obsolete:
+        for test in tests:
+            problem = Problem(
+                f"{test.full_name} verifies obsolete requirement {requirement.id}",
+                ProblemCode.DH006,
+            )
+            logger.debug(problem)
+            yield problem

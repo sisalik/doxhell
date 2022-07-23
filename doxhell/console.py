@@ -15,16 +15,25 @@ def print_coverage_summary(coverage: CoverageCollection) -> None:
     table.add_column("Tests")
     table.add_column("Type")
     for requirement, tests in coverage.mapping.items():
+        # TODO: This is a bit of a hack, but it works for now
         if tests:
             colour_str = "[green]"
             tests_str = colour_str + "\n".join(test.full_name for test in tests)
             type_str = "\n".join(
                 "[cyan]Auto" if test.automated else "[magenta]Manual" for test in tests
             )
+        elif requirement.obsolete:
+            tests_str = "[gray]NO TESTS (OBSOLETE)"
+            type_str = "[gray]-"
         else:
             colour_str = "[red]"
             tests_str = f"{colour_str}NO TESTS"
             type_str = "[red]-"
+        # For obsolete requirements, override all styles
+        if requirement.obsolete:
+            colour_str = "[gray][strike]"
+            tests_str = f"{colour_str}{tests_str.split(']')[1]}"
+            type_str = f"{colour_str}{type_str.split(']')[1]}"
         table.add_row(f"{colour_str}{requirement.id}", tests_str, type_str)
 
     print()

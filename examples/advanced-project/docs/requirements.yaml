@@ -34,5 +34,9 @@ body:
         The application shall produce audible alerts when user interaction is required
       rationale: So that users are aware
       parent: REQ-00598-589
+    - id: REQ-022
+      specification: >
+        The application shall produce audible alerts every minute
+      rationale: So that users pay attention
       obsolete: true
-      obsolete_reason: Users are aware but also annoyed
+      obsolete_reason: Users are alert but also annoyed
