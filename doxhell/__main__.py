@@ -4,12 +4,16 @@ from pathlib import Path
 import click
 from loguru import logger
 
-import doxhell.console
-import doxhell.loaders
 import doxhell.renderer
 import doxhell.reviewer
-import doxhell.utils
 from doxhell.command_line import BaseCommand, PathlibPath
+from doxhell.console import (
+    print_coverage_summary,
+    print_problems,
+    print_result_bad,
+    print_result_good,
+)
+from doxhell.loaders import RequirementsDoc, TestsDoc
 from doxhell.renderer import OutputFormat, OutputType
 from doxhell.reviewer import ProblemCode
 
@@ -27,12 +31,12 @@ def review(
 ) -> None:
     """Validate requirements and tests; check coverage."""
     requirements, _, problems = doxhell.reviewer.review(test_dirs, docs_dirs, ignores)
-    doxhell.console.print_coverage_summary(requirements)
+    print_coverage_summary(requirements)
     if problems:
-        doxhell.console.print_problems(problems)
-        doxhell.console.print_result_bad("Review failed 😢")
+        print_problems(problems)
+        print_result_bad("Review failed 😢")
     else:
-        doxhell.console.print_result_good("✨ Your documentation is perfect! ✨")
+        print_result_good("✨ Your documentation is perfect! ✨")
     sys.exit(len(problems))
 
 
@@ -88,8 +92,8 @@ def render(
         test_dirs, docs_dirs, ignores
     )
     if problems:
-        doxhell.console.print_problems(problems)
-        doxhell.console.print_result_bad("Documentation is invalid; can't continue 😢")
+        print_problems(problems)
+        print_result_bad("Documentation is invalid; cannot continue 😢")
         sys.exit(len(problems))
     # Select the document object depending on the rendering target
     document = {
@@ -99,7 +103,7 @@ def render(
     # It's possible to have a valid documentation set without any manual tests, but this
     # means you can't render the protocol
     if not document:
-        doxhell.console.print_result_bad(f"No source file for {target} document exists")
+        print_result_bad(f"No source file for {target} document exists")
         sys.exit(1)
     # Compile metadata as context to be included in the rendered documents. Used in
     # Jinja templates.
@@ -108,7 +112,7 @@ def render(
     output_map = _map_output_formats(formats, output_files, document, force_overwrite)
     doxhell.renderer.render(target, output_map, context)
     output_files_str = ", ".join(str(f) for f in output_map.values())
-    doxhell.console.print_result_good(f"Wrote {output_files_str}")
+    print_result_good(f"Wrote {output_files_str}")
 
 
 def _main():
@@ -121,7 +125,7 @@ def _main():
 def _map_output_formats(
     formats: tuple[OutputFormat, ...],
     output_files: tuple[str, ...],
-    document: doxhell.loaders.RequirementsDoc | doxhell.loaders.TestsDoc,
+    document: RequirementsDoc | TestsDoc,
     force_overwrite: bool,
 ) -> dict[OutputFormat, str]:
     """Validate and map output formats to output files."""
