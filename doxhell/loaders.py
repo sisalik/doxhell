@@ -10,7 +10,7 @@ import yaml
 from loguru import logger
 from pydantic import BaseModel, ValidationError, validator
 
-from doxhell.decorators import VerificationTest
+from doxhell.tests_integration import VerificationTest
 
 
 class Requirement(BaseModel):

@@ -1,5 +1,5 @@
 import pytest
-from doxhell.decorators import verifies
+from doxhell import verifies
 
 from advanced_project.calculator import multiply_numbers
 
@@ -10,7 +10,8 @@ def test_1():
     assert multiply_numbers(1, 2) == 2
 
 
-@verifies("REQ-011", "REQ-021")
+@verifies("REQ-011")
+@verifies("REQ-021")
 def test_2():
     """Test 2."""
     assert multiply_numbers(-10.0, -0.5) == 5.0

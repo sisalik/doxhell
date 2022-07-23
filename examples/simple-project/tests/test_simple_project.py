@@ -1,5 +1,5 @@
 import pytest
-from doxhell.decorators import verifies
+from doxhell import verifies
 
 from simple_project.calculator import add_numbers
 
