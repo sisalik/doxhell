@@ -8,77 +8,10 @@ import doxhell.console
 import doxhell.loaders
 import doxhell.renderer
 import doxhell.reviewer
+import doxhell.utils
+from doxhell.command_line import BaseCommand, PathlibPath
 from doxhell.renderer import OutputFormat, OutputType
 from doxhell.reviewer import ProblemCode
-
-
-class PathlibPath(click.Path):
-    """A Click parameter type that converts into a pathlib.Path.
-
-    Based on solution by jeremyh at
-    https://github.com/pallets/click/issues/405#issuecomment-470812067
-    """
-
-    def convert(self, value, param, ctx):
-        """Convert a string to a pathlib.Path."""
-        return Path(super().convert(value, param, ctx))
-
-
-class ProblemCodeType(click.ParamType):
-    """A Click parameter type for problem codes."""
-
-    name = "problem_code"
-
-    def convert(self, value, param, ctx):
-        """Convert a string to a problem code."""
-        try:
-            return ProblemCode[value]
-        except KeyError:
-            self.fail(f"{value} is not a valid problem code", param, ctx)
-
-
-class StandardCommand(click.Command):
-    """CLI command with common options."""
-
-    def __init__(self, *args, **kwargs):
-        """Initialise a StandardCommand instance."""
-        super().__init__(*args, **kwargs)
-        self.params.extend(
-            [
-                click.Option(
-                    ("-v", "--verbose", "verbosity"),
-                    default=0,
-                    type=click.IntRange(0, 2),
-                    count=True,
-                    help="Increase verbosity of logging output. Can be used multiple "
-                    "times, e.g. -vv.",
-                ),
-                click.Option(
-                    ("--test-dir", "test_dirs"),
-                    default=(".",),
-                    type=PathlibPath(exists=True, file_okay=False, dir_okay=True),
-                    multiple=True,
-                    help="The directory containing the automated tests. Can be passed "
-                    "multiple times to analyse more than one directory.",
-                ),
-                click.Option(
-                    ("--docs-dir", "docs_dirs"),
-                    default=(".",),
-                    type=PathlibPath(exists=True, file_okay=False, dir_okay=True),
-                    multiple=True,
-                    help="The directory containing the documentation files. Can be "
-                    "passed multiple times to analyse more than one directory.",
-                ),
-                click.Option(
-                    ("-i", "--ignore", "ignores"),
-                    default=(),
-                    type=ProblemCodeType(),
-                    multiple=True,
-                    help="The problem codes to ignore. Can be passed multiple times to "
-                    "ignore more than one problem.",
-                ),
-            ]
-        )
 
 
 @click.group()
@@ -86,15 +19,13 @@ def cli():
     """Automate software V&V documentation work."""
 
 
-@cli.command(cls=StandardCommand)
+@cli.command(cls=BaseCommand)
 def review(
-    verbosity: int,
     test_dirs: tuple[Path, ...],
     docs_dirs: tuple[Path, ...],
     ignores: tuple[ProblemCode, ...],
 ) -> None:
     """Validate requirements and tests; check coverage."""
-    _setup_logging(verbosity)
     requirements, _, problems = doxhell.reviewer.review(test_dirs, docs_dirs, ignores)
     doxhell.console.print_coverage_summary(requirements)
     doxhell.console.print_problems(problems)
@@ -105,7 +36,7 @@ def review(
     sys.exit(len(problems))
 
 
-@cli.command(cls=StandardCommand)
+@cli.command(cls=BaseCommand)
 @click.argument("target", type=click.Choice(list(OutputType)))
 @click.option(
     "-t",
@@ -138,7 +69,6 @@ def render(
     formats: tuple[OutputFormat, ...],
     output_files: tuple[str, ...],
     force_overwrite: bool,
-    verbosity: int,
     test_dirs: tuple[Path, ...],
     docs_dirs: tuple[Path, ...],
     ignores: tuple[ProblemCode, ...],
@@ -148,7 +78,6 @@ def render(
         raise NotImplementedError(f"Rendering {target} is not yet implemented")
     output_map = _map_output_formats(target, formats, output_files, force_overwrite)
 
-    _setup_logging(verbosity)
     requirements, tests, problems = doxhell.reviewer.review(
         test_dirs, docs_dirs, ignores
     )
@@ -177,19 +106,6 @@ def _main():
         cli()
 
 
-def _setup_logging(verbosity: int) -> None:
-    logger.remove()
-    verbosity_to_level = {
-        0: "WARNING",  # No -v argument
-        1: "INFO",  # -v
-        2: "DEBUG",  # -vv
-    }
-    try:
-        logger.add(sys.stderr, level=verbosity_to_level[verbosity])
-    except KeyError:
-        raise ValueError(f"Invalid verbosity level: {verbosity}")
-
-
 def _map_output_formats(
     target: str,
     formats: tuple[OutputFormat, ...],
@@ -202,9 +118,9 @@ def _map_output_formats(
         output_files = tuple(f"{target}.{format}" for format in formats)
     # Check for mismatched number of formats and output files.
     elif len(formats) != len(output_files):
-        raise ValueError(
-            f"Mismatched number of formats and output files: {len(formats)} formats "
-            f"and {len(output_files)} output files"
+        raise click.UsageError(
+            f"Mismatched number of formats ({len(formats)}) and output files "
+            f"({len(output_files)})"
         )
     # Check if any output files already exist.
     if not force_overwrite:
