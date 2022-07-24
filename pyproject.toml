@@ -5,6 +5,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.djlint]
 ignore = "H030,H031"
 profile = "jinja"
+indent = 2
 
 [tool.flake8]
 docstring-convention = "google"

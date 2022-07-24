@@ -1,28 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <title>{{ document.full_title }}</title>
-        <style>{% include 'requirements.css' %}</style>
-    </head>
-    <body>
-        {% for section in document.body %}
-            <div class="section">
-                <h2 class="section-title">{{ section.title }}</h2>
-                {% for requirement in section.items %}
-                    <div class="requirement{% if requirement.obsolete %} obsolete{% endif %}">
-                        <div class="requirement-title">
-                            <h3 class="requirement-id">{{ requirement.id }}</h3>
-                            {% if requirement.parent %}<span class="parent-id">▲ {{ requirement.parent }}</span>{% endif %}
-                        </div>
-                        {% if requirement.obsolete_reason %}
-                            <p class="obsolete-reason">Obsolete: {{ requirement.obsolete_reason }}</p>
-                        {% endif %}
-                        <p>{{ requirement.specification }}</p>
-                        <p class="rationale">{{ requirement.rationale }}</p>
-                    </div>
-                {% endfor %}
+  <head>
+    <meta charset="utf-8" />
+    <title>{{ document.full_title }}</title>
+    <style>{% include 'requirements.css' %}</style>
+  </head>
+  <body>
+    {% for section in document.body %}
+      <div class="section">
+        <h2 class="section-title">{{ section.title }}</h2>
+        {% for requirement in section.items %}
+          <div class="requirement{% if requirement.obsolete %} obsolete{% endif %}">
+            <div class="requirement-title">
+              <h3 class="requirement-id">{{ requirement.id }}</h3>
+              {% if requirement.parent %}<span class="parent-id">▲ {{ requirement.parent }}</span>{% endif %}
             </div>
+            {% if requirement.obsolete_reason %}
+              <p class="obsolete-reason">Obsolete: {{ requirement.obsolete_reason }}</p>
+            {% endif %}
+            <p>{{ requirement.specification }}</p>
+            <p class="rationale">{{ requirement.rationale }}</p>
+          </div>
         {% endfor %}
-    </body>
+      </div>
+    {% endfor %}
+  </body>
 </html>

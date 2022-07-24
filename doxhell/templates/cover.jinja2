@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <head>
-    <style>{% include 'cover.css' %}</style>
+  <style>{% include 'cover.css' %}</style>
 </head>
 <body>
-    <div id="front-page">
-        <h1>{{ document.full_title }}</h1>
-        {% if document.author %}<h3>{{ document.author }}</h3>{% endif %}
-        <h3>{{ render_date.strftime('%Y-%m-%d') }}</h3>
-    </div>
+  <div id="front-page">
+    <h1>{{ document.full_title }}</h1>
+    {% if document.author %}<h3>{{ document.author }}</h3>{% endif %}
+    <h3>{{ render_date.strftime('%Y-%m-%d') }}</h3>
+  </div>
 </body>
