@@ -1,14 +1,20 @@
 <h1 align="center">doxhell</h1>
 <div align="center">
 
-[![CI](https://github.com/sisalik/doxhell/actions/workflows/ci.yml/badge.svg)](https://github.com/sisalik/doxhell/actions/workflows/ci.yml)
-[![GitHub Issues](https://img.shields.io/github/issues/sisalik/doxhell.svg)](https://github.com/sisalik/doxhell/issues)
-[![GitHub Pull Requests](https://img.shields.io/github/issues-pr/sisalik/doxhell.svg)](https://github.com/sisalik/doxhell/pulls)
+[![CI](https://github.com/sisalik/doxhell/actions/workflows/ci.yml/badge.svg)](
+  https://github.com/sisalik/doxhell/actions/workflows/ci.yml)
+[![GitHub Issues](https://img.shields.io/github/issues/sisalik/doxhell.svg)](
+  https://github.com/sisalik/doxhell/issues)
+[![GitHub Pull Requests](https://img.shields.io/github/issues-pr/sisalik/doxhell.svg)](
+  https://github.com/sisalik/doxhell/pulls)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](/LICENSE)
 
 </div>
 
 ## About
+
+> :warning: **Work in progress**: There is still plenty of development and testing to do
+before releasing doxhell and publishing to PyPI.
 
 doxhell allows you to automate documentation tasks for projects with requirements
 specifications and manual tests.
