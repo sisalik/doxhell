@@ -19,7 +19,7 @@ before releasing doxhell and publishing to PyPI.
 doxhell allows you to automate documentation tasks for projects with requirements
 specifications and manual tests.
 
-<img src="assets/demo.gif" width="600" alt="Demo"/>
+<img src="assets/demo.gif" height="450" alt="Demo"/>
 
 ## Key features
 - Reads project requirements from a YAML file
@@ -30,16 +30,18 @@ specifications and manual tests.
   checking coverage
 - Checks for other issues in YAML documentation, e.g. duplicate IDs, invalid schema
 - Generates HTML and PDF documents for:
-  - **Requirements**
-  - **Manual test protocol** (if manual tests defined)
-  - **Coverage/requirements traceability** (if document metadata provided in YAML)
+  - [Requirements](examples/advanced-project/sample-requirements.pdf)
+  - [Manual test protocol](examples/advanced-project/sample-protocol.pdf) (if manual
+    tests defined)
+  - [Coverage/requirements traceability](examples/advanced-project/sample-coverage.pdf)
+    (if document metadata provided in YAML)
 - The manual test protocol PDF is interactive and supports the recording and storage of
   results, acting as a manual test report
 - Can be configured via *pyproject.toml* (see [Configuration](#Configuration))
 
-The [examples](/examples/) directory contains some project examples that have doxhell-enabled
-documentation and unit tests. You can try running doxhell commands against these
-projects. Sample output files are also provided.
+The [examples](/examples/) directory contains some project examples that have
+doxhell-enabled documentation and unit tests. You can try running doxhell commands
+against these projects. Sample output files are also provided.
 
 ## Getting started
 

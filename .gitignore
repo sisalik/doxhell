@@ -128,3 +128,8 @@ cython_debug/
 # IDEs
 .idea/
 .vscode/
+
+# Rendered output files
+examples/**/*.pdf
+examples/**/*.html
+!examples/**/sample-*.pdf
