@@ -156,7 +156,7 @@ def _check_test_verifies_obsolete_requirement(
     if requirement.obsolete:
         for test in tests:
             problem = Problem(
-                f"{test.full_name} verifies obsolete requirement {requirement.id}",
+                f"Test {test.id} verifies obsolete requirement {requirement.id}",
                 ProblemCode.DH006,
             )
             logger.debug(problem)
