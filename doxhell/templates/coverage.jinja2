@@ -20,14 +20,18 @@
                             <p class="requirement-id">{{ requirement.id }}</p>
                         </td>
                         <td>
-                            <ul>
-                                {% for test in tests %}
-                                    <li>
-                                        <span class="tag test-type-{{ 'auto' if test.automated else 'manual' }}"></span>
-                                        <span class="test-name">{{ test.full_name }}</span>
-                                    </li>
-                                {% endfor %}
-                            </ul>
+                            {% if tests %}
+                                <ul>
+                                    {% for test in tests %}
+                                        <li>
+                                            <span class="tag test-type-{{ 'auto' if test.automated else 'manual' }}"></span>
+                                            <span class="test-name">{{ test.full_name }}</span>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                No tests found
+                            {% endif %}
                         </td>
                     </tr>
                 {% endfor %}

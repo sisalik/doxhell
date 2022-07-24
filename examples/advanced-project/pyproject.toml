@@ -1,3 +1,13 @@
+# Example custom configuration fox doxhell
+[tool.doxhell]
+docs_dirs = "docs"  # Specify exact directory where to look for YAML files
+# The ignores have been commented out not to interfere with integration tests
+# ignores = [
+#     "DH002",  # We don't care if an no reason is given for requirements made obsolete
+#     "DH006",  # We don't care about obsolete requirements being verified
+# ]
+verbosity = 1  # We like to see some more info
+
 [tool.poetry]
 name = "advanced-project"
 version = "0.1.0"
