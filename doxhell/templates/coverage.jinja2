@@ -6,11 +6,14 @@
         <style>{% include 'coverage.css' %}</style>
     </head>
     <body>
-        <table>
+        <table class="requirements-table">
             <thead>
                 <tr>
                     <th>Requirement</th>
-                    <th>Tests</th>
+                    <th>
+                        <span id="heading-tests">Tests</span>
+                        <span id="heading-descriptions">Descriptions</span>
+                    </th>
                 </tr>
             </thead>
             <tbody>
@@ -21,14 +24,17 @@
                         </td>
                         <td>
                             {% if tests %}
-                                <ul>
+                                <table class="tests-table">
                                     {% for test in tests %}
-                                        <li>
-                                            <span class="tag test-type-{{ 'auto' if test.automated else 'manual' }}"></span>
-                                            <span class="test-name">{{ test.full_name }}</span>
-                                        </li>
+                                        <tr>
+                                            <td>
+                                                <span class="tag test-type-{{ 'auto' if test.automated else 'manual' }}"></span>
+                                                <span class="test-name">{{ test.id }}</span>
+                                            </td>
+                                            <td class="test-description">{{ test.description }}</td>
+                                        </tr>
                                     {% endfor %}
-                                </ul>
+                                </table>
                             {% else %}
                                 No tests found
                             {% endif %}

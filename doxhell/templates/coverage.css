@@ -2,35 +2,47 @@ body {
     font-family: sans-serif;
 }
 
-table {
+table.requirements-table {
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 20px;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
 }
 
-table thead tr {
+table.requirements-table>thead tr {
     background-color: #bbb;
     color: white;
     text-align: left;
 }
 
-table th,
-table td {
+table.requirements-table>thead th,
+table.requirements-table>tbody>tr>td {
     padding: 12px 15px;
     vertical-align: top;
 }
 
-table tbody tr {
+table.requirements-table>tbody>tr {
     border-bottom: 1px solid #dddddd;
 }
 
-table tbody tr:nth-of-type(even) {
+table.requirements-table>tbody>tr:nth-of-type(even) {
     background-color: #f3f3f3;
 }
 
-table tbody tr:last-of-type {
+table.requirements-table>tbody>tr:last-of-type {
     border-bottom: 2px solid darkgrey;
+}
+
+#heading-tests {
+    float: left;
+}
+
+#heading-descriptions {
+    float: left;
+    position: relative;
+    left: 40%;
+    transform: translateX(-37px);
+    -webkit-transform: translateX(-37px);
 }
 
 .requirement.obsolete {
@@ -45,13 +57,32 @@ table tbody tr:last-of-type {
 .requirement-id {
     font-weight: bold;
     font-size: 16px;
-    margin: 0;
+    margin: 4px 0 0;
 }
 
-ul {
-    margin: 0;
-    padding: 0;
-    list-style-type: none;
+table.tests-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+table.tests-table td {
+    vertical-align: top;
+    padding: 6px 0;
+    border-bottom: 1px solid #ddd;
+}
+
+table.tests-table tr:first-of-type>td {
+    padding-top: 0;
+}
+
+table.tests-table tr:last-of-type>td {
+    padding-bottom: 0;
+    border: none;
+}
+
+table.tests-table td:first-of-type {
+    width: 40%;
+    padding-right: 5px;
 }
 
 .tag::after {
@@ -75,4 +106,9 @@ ul {
 .test-name {
     font-family: monospace;
     font-size: 16px;
+    word-break: break-all;
+}
+
+.test-description {
+    font-style: italic;
 }
