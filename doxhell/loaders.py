@@ -1,14 +1,12 @@
-import importlib
 import inspect
-import unittest.mock
 from collections.abc import Callable, Iterable, Iterator
 from pathlib import Path
-from types import ModuleType
 
 import yaml
 from loguru import logger
 from pydantic import ValidationError
 
+import doxhell.utils
 from doxhell.models import (
     CoverageCollection,
     CoverageDoc,
@@ -177,46 +175,22 @@ def _find_test_files(path: Path) -> Iterator[Path]:
 
 def _find_test_functions(file_path: Path) -> Iterator[Callable]:
     """Find all test functions in the given module."""
-    module = _import_module(file_path)
-    # TODO: Support unittest style test classes
+    module = doxhell.utils.import_module(file_path)
     for name, obj in inspect.getmembers(module):
+        # As per pytest test discovery method:
+        # 1. Look for "test" prefixed test functions or methods outside of classes
         if name.startswith("test") and inspect.isfunction(obj):
+            logger.debug(f"Found test function: {name}")
             yield obj
-
-
-def _import_module(file_path: Path) -> ModuleType:
-    """Import the given module, without having the module dependencies installed.
-
-    We need to be able to import test modules without having the project dependencies
-    installed. This is because doxhell may be installed in an environment outside of the
-    project.
-
-    Normally, imports of any modules, that aren't available in the doxhell environment,
-    would fail. We patch the import machinery to selectively return a mock object for
-    these. We make an exception for importing doxhell itself, since we still need the
-    decorators to be available.
-    """
-    # Convert the path to a Python module name by removing the file extension and using
-    # dots as separators (e.g. "tests/test_doxhell.py" -> "tests.test_doxhell")
-    parts = file_path.parts[:-1] + (file_path.stem,)
-    module_name = ".".join(parts)
-    # Set up importing the source file directly. Based on:
-    # https://docs.python.org/3/library/importlib.html#importing-a-source-file-directly
-    spec = importlib.util.spec_from_file_location(module_name, str(file_path))
-    assert spec, f"Failed to create module spec for {file_path}"
-    assert spec.loader, f"Spec for {file_path} has no loader"
-    module = importlib.util.module_from_spec(spec)
-
-    # Define a mock function for selectively importing modules. It allows any doxhell
-    # related modules to be imported as normal, but returns a mock object for all other
-    # modules.
-    def selective_import(name, *args, **kwargs):
-        if name.split(".")[0] == "doxhell":
-            return builtin_import(name, *args, **kwargs)
-        return unittest.mock.MagicMock()
-
-    builtin_import = __import__
-    # Patch the builtin import function during loading, to use our mock from above
-    with unittest.mock.patch("builtins.__import__", side_effect=selective_import):
-        spec.loader.exec_module(module)
-    return module
+        # 2. Look for "test" prefixed test functions or methods inside "Test" prefixed
+        # test classes (without an __init__ method)
+        elif (
+            name.startswith("Test")
+            and inspect.isclass(obj)
+            and "__init__" not in obj.__dict__
+        ):
+            logger.debug(f"Found test class: {name}")
+            for member_name, member_obj in inspect.getmembers(obj):
+                if member_name.startswith("test") and inspect.isfunction(member_obj):
+                    logger.debug(f"Found test method: {member_name}")
+                    yield member_obj
